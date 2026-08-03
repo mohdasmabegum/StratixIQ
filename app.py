@@ -1,6 +1,7 @@
 import streamlit as st
 import os
 import time
+import base64
 from typing import List, Dict, Any
 from PIL import Image
 from utils import extract_text_from_pdf, chunk_document_text, store_instance
@@ -18,6 +19,13 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded" if st.session_state.get("splash_done") else "collapsed"
 )
+
+# Function to encode local image to base64 for pure single-block HTML rendering
+def get_base64_logo():
+    if os.path.exists("logo.png"):
+        with open("logo.png", "rb") as f:
+            return base64.b64encode(f.read()).decode("utf-8")
+    return ""
 
 # Initial Talent Pool Dataset
 INITIAL_CANDIDATES = [
@@ -104,79 +112,7 @@ st.markdown(f"""
 
     {hide_sidebar_css}
 
-    /* Keyframe Animations for Stylish Splash */
-    @keyframes zoomInLogo {{
-        0% {{ transform: scale(0.85); opacity: 0; filter: drop-shadow(0 0 0px rgba(59, 130, 246, 0)); }}
-        50% {{ transform: scale(1.04); opacity: 1; filter: drop-shadow(0 20px 40px rgba(59, 130, 246, 0.4)); }}
-        100% {{ transform: scale(1); opacity: 1; filter: drop-shadow(0 15px 30px rgba(139, 92, 246, 0.3)); }}
-    }}
-
-    @keyframes fadeInUpText {{
-        0% {{ opacity: 0; transform: translateY(15px); }}
-        100% {{ opacity: 1; transform: translateY(0); }}
-    }}
-
-    /* Perfectly Centered Vertical & Horizontal Splash Screen */
-    .splash-card {{
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        text-align: center;
-        min-height: 80vh;
-        width: 100%;
-        margin: 0 auto;
-        padding: 2rem 1rem;
-    }}
-
-    .splash-logo-box {{
-        background-color: #FFFFFF !important;
-        padding: 1.5rem;
-        border-radius: 1.5rem;
-        box-shadow: 0 20px 50px rgba(59, 130, 246, 0.35);
-        display: inline-block;
-        animation: zoomInLogo 1.4s ease-out forwards;
-        margin-bottom: 1.5rem;
-    }}
-
-    .splash-title {{
-        font-size: 4rem;
-        font-weight: 900;
-        letter-spacing: -0.03em;
-        background: linear-gradient(90deg, #60A5FA, #A78BFA);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        animation: fadeInUpText 1.2s ease-out forwards;
-        margin-top: 0;
-        margin-bottom: 0.5rem;
-        line-height: 1.1;
-    }}
-
-    .splash-subtitle {{
-        font-size: 1.5rem;
-        font-weight: 600;
-        color: #F1F5F9;
-        animation: fadeInUpText 1.4s ease-out forwards;
-        margin-bottom: 0.5rem;
-        line-height: 1.3;
-    }}
-
-    .splash-tagline {{
-        font-size: 1.05rem;
-        color: #94A3B8;
-        max-width: 620px;
-        animation: fadeInUpText 1.6s ease-out forwards;
-        line-height: 1.5;
-    }}
-
-    /* Main App Header & Cards */
-    img {{
-        border-radius: 12px !important;
-        background-color: #FFFFFF !important;
-        padding: 6px !important;
-        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25) !important;
-    }}
-
+    /* CSS Hover & Transition Effects */
     .stButton button {{
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
         border-radius: 0.65rem !important;
@@ -238,20 +174,23 @@ st.markdown(f"""
 """, unsafe_allow_html=True)
 
 # ==========================================
-# PERFECTLY CENTERED SPLASH SCREEN (FULL LOGO + APP NAME BELOW + AUTO-REDIRECT)
+# PURE HTML TOP-CENTERED SPLASH SCREEN (NO DOTS, NO CACHE GLITCHES, APP NAME BELOW)
 # ==========================================
 if not st.session_state["splash_done"]:
-    st.markdown('<div class="splash-card">', unsafe_allow_html=True)
+    logo_b64 = get_base64_logo()
     
-    if os.path.exists("logo.png"):
-        st.markdown('<div class="splash-logo-box">', unsafe_allow_html=True)
-        st.image("logo.png", width=220)
-        st.markdown('</div>', unsafe_allow_html=True)
-
-    st.markdown('<p class="splash-title">StratixIQ</p>', unsafe_allow_html=True)
-    st.markdown('<p class="splash-subtitle">Agile Talent Deployment & Skill-Matching Engine</p>', unsafe_allow_html=True)
-    st.markdown('<p class="splash-tagline">AI-driven RAG vector pipeline for instant candidate staffing, structured score breakdown, and availability tracking</p>', unsafe_allow_html=True)
-    st.markdown('</div>', unsafe_allow_html=True)
+    splash_html = f"""
+    <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding-top: 3rem; padding-bottom: 2rem; width: 100%;">
+        <div style="background-color: #FFFFFF; padding: 1.5rem; border-radius: 1.5rem; box-shadow: 0 20px 45px rgba(59, 130, 246, 0.35); display: inline-block; margin-bottom: 1.5rem;">
+            <img src="data:image/png;base64,{logo_b64}" style="width: 220px; height: auto; display: block; margin: 0 auto; border-radius: 10px;" />
+        </div>
+        <h1 style="font-size: 3.8rem; font-weight: 900; letter-spacing: -0.03em; background: linear-gradient(90deg, #60A5FA, #A78BFA); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin: 0 0 0.5rem 0; line-height: 1.1;">StratixIQ</h1>
+        <h3 style="font-size: 1.45rem; font-weight: 600; color: #F1F5F9; margin: 0 0 0.75rem 0;">Agile Talent Deployment & Skill-Matching Engine</h3>
+        <p style="font-size: 1.05rem; color: #94A3B8; max-width: 620px; margin: 0 auto; line-height: 1.5;">AI-driven RAG vector pipeline for instant candidate staffing, structured score breakdown, and availability tracking</p>
+    </div>
+    """
+    
+    st.markdown(splash_html, unsafe_allow_html=True)
 
     time.sleep(2.5)
     st.session_state["splash_done"] = True
