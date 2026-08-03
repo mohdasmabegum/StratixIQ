@@ -86,14 +86,15 @@ if "user_info" not in st.session_state:
 if "screen" not in st.session_state:
     st.session_state["screen"] = "splash" # 'splash', 'login', 'register', 'dashboard'
 
-if "splash_done" not in st.session_state:
-    st.session_state["splash_done"] = False
+if "deploy_modal_candidate" not in st.session_state:
+    st.session_state["deploy_modal_candidate"] = None
 
 # Hide Streamlit toolbars & header
 hide_sidebar_css = "" if st.session_state["authenticated"] else "[data-testid='stSidebar'] {display: none !important;}"
 
 st.markdown(f"""
 <style>
+    /* Hide Streamlit Header & Toolbar */
     #MainMenu {{visibility: hidden;}}
     header {{visibility: hidden !important;}}
     footer {{visibility: hidden !important;}}
@@ -106,14 +107,45 @@ st.markdown(f"""
     
     {hide_sidebar_css}
 
+    /* Keyframe Animations */
+    @keyframes floatLogo {{
+        0% {{ transform: translateY(0px) scale(1); filter: drop-shadow(0 10px 20px rgba(59, 130, 246, 0.3)); }}
+        100% {{ transform: translateY(-8px) scale(1.03); filter: drop-shadow(0 20px 35px rgba(139, 92, 246, 0.4)); }}
+    }}
+
+    @keyframes pulseGlow {{
+        0% {{ box-shadow: 0 0 15px rgba(59, 130, 246, 0.2); }}
+        50% {{ box-shadow: 0 0 30px rgba(59, 130, 246, 0.5); }}
+        100% {{ box-shadow: 0 0 15px rgba(59, 130, 246, 0.2); }}
+    }}
+
+    /* White Background Logo Containers */
+    .logo-white-bg {{
+        background-color: #FFFFFF !important;
+        padding: 1.25rem;
+        border-radius: 1.25rem;
+        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35);
+        display: inline-block;
+        animation: floatLogo 2.5s ease-in-out infinite alternate;
+    }}
+
+    .logo-white-bg-sm {{
+        background-color: #FFFFFF !important;
+        padding: 0.6rem;
+        border-radius: 0.75rem;
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
+        display: inline-block;
+    }}
+
     /* CSS Hover & Transition Effects */
     .stButton button {{
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
-        border-radius: 0.6rem !important;
+        border-radius: 0.65rem !important;
+        font-weight: 600 !important;
     }}
     .stButton button:hover {{
         transform: translateY(-2px) scale(1.02) !important;
-        box-shadow: 0 8px 20px rgba(59, 130, 246, 0.3) !important;
+        box-shadow: 0 10px 25px rgba(59, 130, 246, 0.35) !important;
     }}
 
     .splash-container {{
@@ -122,39 +154,26 @@ st.markdown(f"""
         align-items: center;
         justify-content: center;
         text-align: center;
-        padding: 3rem 1rem;
-        animation: fadeIn 1s ease-in-out;
-    }}
-
-    @keyframes fadeIn {{
-        from {{ opacity: 0; transform: translateY(10px); }}
-        to {{ opacity: 1; transform: translateY(0); }}
+        padding: 4rem 1rem;
+        min-height: 75vh;
     }}
 
     .splash-app-name {{
-        font-size: 3.5rem;
+        font-size: 3.8rem;
         font-weight: 900;
         letter-spacing: -0.03em;
         background: linear-gradient(90deg, #60A5FA, #A78BFA);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
-        margin-top: 0.5rem;
-        margin-bottom: 0.25rem;
+        margin-top: 1.5rem;
+        margin-bottom: 0.5rem;
     }}
 
     .splash-tagline {{
-        font-size: 1.4rem;
+        font-size: 1.5rem;
         font-weight: 600;
         color: #F1F5F9;
-        margin-bottom: 0.75rem;
-    }}
-
-    .splash-subtext {{
-        font-size: 1rem;
-        color: #94A3B8;
-        max-width: 600px;
-        margin: 0 auto 1.5rem auto;
-        line-height: 1.6;
+        margin-bottom: 0;
     }}
 
     .auth-card {{
@@ -165,7 +184,7 @@ st.markdown(f"""
         max-width: 460px;
         margin: 2rem auto;
         box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-        transition: all 0.3s ease;
+        animation: pulseGlow 4s infinite;
     }}
 
     .main-header {{
@@ -182,12 +201,12 @@ st.markdown(f"""
         border-radius: 0.85rem;
         padding: 1.25rem;
         margin-bottom: 1rem;
-        transition: all 0.25s ease-in-out;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }}
     .metric-card:hover {{
-        border-color: rgba(59, 130, 246, 0.4);
-        transform: translateY(-2px);
-        box-shadow: 0 12px 24px -6px rgba(59, 130, 246, 0.2);
+        border-color: rgba(59, 130, 246, 0.5);
+        transform: translateY(-4px);
+        box-shadow: 0 16px 32px -6px rgba(59, 130, 246, 0.25);
     }}
 
     .badge-avail {{
@@ -228,49 +247,47 @@ def login_as_demo_user():
     st.session_state["screen"] = "dashboard"
 
 # ==========================================
-# SCREEN 1: SPLASH SCREEN (ONLY LOGO, APP NAME & INFO, AUTO 3-SEC REDIRECT)
+# SCREEN 1: SPLASH SCREEN (ONLY CENTERED LOGO WITH WHITE BACKGROUND & APP NAME BELOW, AUTO 3-SEC REDIRECT, NO LOADING BAR)
 # ==========================================
 if not st.session_state["authenticated"] and st.session_state["screen"] == "splash":
     st.markdown('<div class="splash-container">', unsafe_allow_html=True)
     
-    # Centered 3D Logo Symbol
-    col_center = st.columns([1, 1, 1])[1]
-    with col_center:
+    # White Background Logo Container in Center
+    col_splash_center = st.columns([1, 1, 1])[1]
+    with col_splash_center:
+        st.markdown('<div class="logo-white-bg">', unsafe_allow_html=True)
         if os.path.exists("logo.png"):
-            st.image("logo.png", width=140)
+            st.image("logo.png", width=160)
+        st.markdown('</div>', unsafe_allow_html=True)
 
-    # App Name & Subtext
+    # App Name Below Logo
     st.markdown('<p class="splash-app-name">StratixIQ</p>', unsafe_allow_html=True)
     st.markdown('<p class="splash-tagline">Agile Talent Deployment & Skill-Matching Engine</p>', unsafe_allow_html=True)
-    st.markdown('<p class="splash-subtext">Enterprise AI-driven RAG vector pipeline for instant candidate staffing, structured score breakdown, and availability tracking.</p>', unsafe_allow_html=True)
     st.markdown('</div>', unsafe_allow_html=True)
 
-    # Animated Progress Loader
-    progress_bar = st.progress(0, text="Initializing StratixIQ RAG Engine...")
-    for percent_complete in range(100):
-        time.sleep(0.025)  # Total ~2.5 to 3 seconds splash duration
-        progress_bar.progress(percent_complete + 1, text="Loading StratixIQ Enterprise Engine...")
-
+    # Clean 3-second auto-redirect (No loading bar)
+    time.sleep(3)
     st.session_state["screen"] = "login"
-    st.session_state["splash_done"] = True
     st.rerun()
 
 # ==========================================
-# SCREEN 2: LOGIN SCREEN
+# SCREEN 2: LOGIN SCREEN (NO SPLASH INFO, WHITE BACKGROUND LOGO)
 # ==========================================
 elif not st.session_state["authenticated"] and st.session_state["screen"] == "login":
     col_l1, col_l2, col_l3 = st.columns([1, 2, 1])
     with col_l2:
         st.markdown('<div class="auth-card">', unsafe_allow_html=True)
         
-        # Crisp Aligned Logo & Title
-        c_brand_logo, c_brand_text = st.columns([1, 4])
+        # Logo with White Background
+        c_brand_logo, c_brand_text = st.columns([1, 3])
         with c_brand_logo:
+            st.markdown('<div class="logo-white-bg-sm">', unsafe_allow_html=True)
             if os.path.exists("logo.png"):
-                st.image("logo.png", width=65)
+                st.image("logo.png", width=60)
+            st.markdown('</div>', unsafe_allow_html=True)
         with c_brand_text:
             st.markdown("<h2 style='margin: 0; color: white; line-height: 1.2;'>StratixIQ</h2>", unsafe_allow_html=True)
-            st.markdown("<span style='color: #60A5FA; font-weight: 600; font-size: 0.9rem;'>Manager Sign In</span>", unsafe_allow_html=True)
+            st.markdown("<span style='color: #60A5FA; font-weight: 600; font-size: 0.95rem;'>Manager Sign In</span>", unsafe_allow_html=True)
 
         st.caption("Enter credentials to access the Agile Staffing Engine")
         st.divider()
@@ -309,20 +326,22 @@ elif not st.session_state["authenticated"] and st.session_state["screen"] == "lo
         st.markdown('</div>', unsafe_allow_html=True)
 
 # ==========================================
-# SCREEN 3: REGISTER SCREEN
+# SCREEN 3: REGISTER SCREEN (NO SPLASH INFO, WHITE BACKGROUND LOGO)
 # ==========================================
 elif not st.session_state["authenticated"] and st.session_state["screen"] == "register":
     col_r1, col_r2, col_r3 = st.columns([1, 2, 1])
     with col_r2:
         st.markdown('<div class="auth-card">', unsafe_allow_html=True)
         
-        c_reg_logo, c_reg_text = st.columns([1, 4])
+        c_reg_logo, c_reg_text = st.columns([1, 3])
         with c_reg_logo:
+            st.markdown('<div class="logo-white-bg-sm">', unsafe_allow_html=True)
             if os.path.exists("logo.png"):
-                st.image("logo.png", width=65)
+                st.image("logo.png", width=60)
+            st.markdown('</div>', unsafe_allow_html=True)
         with c_reg_text:
             st.markdown("<h2 style='margin: 0; color: white; line-height: 1.2;'>StratixIQ</h2>", unsafe_allow_html=True)
-            st.markdown("<span style='color: #A78BFA; font-weight: 600; font-size: 0.9rem;'>Register Manager Account</span>", unsafe_allow_html=True)
+            st.markdown("<span style='color: #A78BFA; font-weight: 600; font-size: 0.95rem;'>Register Manager Account</span>", unsafe_allow_html=True)
 
         st.caption("Create a profile for instant RAG candidate matching")
         st.divider()
@@ -359,15 +378,17 @@ elif not st.session_state["authenticated"] and st.session_state["screen"] == "re
         st.markdown('</div>', unsafe_allow_html=True)
 
 # ==========================================
-# SCREEN 4: FULL APP DASHBOARD (AFTER LOGIN)
+# SCREEN 4: ACCOUNT DASHBOARD (AFTER LOGIN - NO REGISTER/LOGIN/DEMO CARDS VISIBLE)
 # ==========================================
 else:
     user_info = st.session_state.get("user_info") or {"name": "Sarah Jenkins", "role": "Lead Engineering Manager"}
 
     # Sidebar Navigation & Profile Info
     with st.sidebar:
+        st.markdown('<div class="logo-white-bg-sm">', unsafe_allow_html=True)
         if os.path.exists("logo.png"):
-            st.image("logo.png", width=140)
+            st.image("logo.png", width=110)
+        st.markdown('</div>', unsafe_allow_html=True)
         st.markdown("## ⚡ StratixIQ Enterprise")
         st.markdown("**Agile Talent Matching Engine**")
         st.divider()
@@ -387,8 +408,10 @@ else:
     # Main App Header
     col_logo, col_title = st.columns([1, 6])
     with col_logo:
+        st.markdown('<div class="logo-white-bg-sm">', unsafe_allow_html=True)
         if os.path.exists("logo.png"):
-            st.image("logo.png", width=90)
+            st.image("logo.png", width=75)
+        st.markdown('</div>', unsafe_allow_html=True)
     with col_title:
         st.markdown('<p class="main-header">StratixIQ: Agile Talent Deployment & Skill-Matching Engine</p>', unsafe_allow_html=True)
         st.caption(f"Welcome back, {user_info['name']} • Enterprise RAG staffing pipeline & availability tracking")
@@ -488,11 +511,22 @@ else:
                             
                             st.info(f"**Strategic Deployment Rationale:** {match['rationale']}")
                             
-                            if st.button(f"Deploy {cand['name']} to Sprint", key=f"deploy_{cand['id']}"):
-                                st.success(f"Assigned {cand['name']} to project staffing queue!")
+                            if st.button(f"⚡ Deploy {cand['name']} to Sprint", key=f"deploy_{cand['id']}"):
+                                st.session_state["deploy_modal_candidate"] = cand
+                                st.toast(f"🎉 Successfully assigned {cand['name']} to sprint deployment!", icon="🚀")
+                                st.rerun()
                             st.markdown('</div>', unsafe_allow_html=True)
             else:
                 st.error("Please enter a project requirement description to run semantic matching.")
+
+        # Interactive Deployment Confirmation Popup
+        if st.session_state["deploy_modal_candidate"]:
+            dep_cand = st.session_state["deploy_modal_candidate"]
+            st.divider()
+            st.success(f"✅ **Deployment Status Confirmed**: Candidate **{dep_cand['name']}** ({dep_cand['role']}) has been assigned to project sprint. Resource team notified!")
+            if st.button("Close Popup"):
+                st.session_state["deploy_modal_candidate"] = None
+                st.rerun()
 
     # TAB 2: UPLOAD RESUME (PDF)
     with tab2:
@@ -536,6 +570,7 @@ else:
                     st.session_state["talent_pool"].insert(0, new_candidate)
                     store_instance.add_profile(c_name.strip(), extracted_text or c_bio, {"candidate_name": c_name, "bandwidth_status": c_status})
                     
+                    st.toast(f"✅ Indexed profile for {c_name} into vector store!", icon="✨")
                     st.success(f"Successfully indexed profile for **{c_name}** into vector store!")
                 else:
                     st.error("Candidate Full Name is required.")
