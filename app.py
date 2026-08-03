@@ -80,6 +80,17 @@ if "auth_mode" not in st.session_state:
 # Custom CSS for crisp logo & sleek UI
 st.markdown("""
 <style>
+    /* Hide Streamlit Header, GitHub Icon, Pencil Edit Icon, Toolbar & Footers */
+    #MainMenu {visibility: hidden;}
+    header {visibility: hidden !important;}
+    footer {visibility: hidden !important;}
+    [data-testid="stHeader"] {display: none !important;}
+    [data-testid="stToolbar"] {display: none !important;}
+    [data-testid="stDecoration"] {display: none !important;}
+    [data-testid="stStatusWidget"] {display: none !important;}
+    .stDeployButton {display: none !important;}
+    button[title="View code"] {display: none !important;}
+    
     .main-header {
         font-size: 2.2rem;
         font-weight: 800;

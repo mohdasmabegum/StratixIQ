@@ -1,0 +1,9 @@
+[client]
+toolbarMode = "off"
+showErrorDetails = false
+
+[theme]
+primaryColor = "#3B82F6"
+backgroundColor = "#090D16"
+secondaryBackgroundColor = "#1E293B"
+textColor = "#F1F5F9"
