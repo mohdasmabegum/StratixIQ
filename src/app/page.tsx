@@ -1,22 +1,19 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { 
-  Zap, 
   UploadCloud, 
   Users, 
   Search, 
   CheckCircle2, 
-  AlertTriangle, 
   Sparkles, 
   BrainCircuit, 
-  Briefcase, 
   Clock, 
   FileText,
   Send,
-  Layers,
   ShieldCheck,
-  ChevronRight
+  ChevronRight,
+  ArrowLeft
 } from "lucide-react";
 import { INITIAL_TALENT_POOL, CandidateProfile, MatchResult } from "@/lib/rag-engine";
 
@@ -118,11 +115,15 @@ export default function StratixIQDashboard() {
 
   return (
     <div className="min-h-screen flex flex-col max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-      {/* Top Header */}
+      {/* Top Header with StratixIQ Brand Logo */}
       <header className="glass-panel p-5 mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <div className="flex items-center space-x-3">
-          <div className="p-3 bg-blue-600/20 border border-blue-500/30 rounded-xl text-blue-400">
-            <Zap className="w-7 h-7 text-blue-400 animate-pulse" />
+        <div className="flex items-center space-x-4">
+          <div className="p-1.5 bg-slate-900/90 border border-slate-700/80 rounded-xl shadow-md flex items-center justify-center">
+            <img 
+              src="/logo.png" 
+              alt="StratixIQ Logo" 
+              className="h-12 w-auto object-contain rounded-lg"
+            />
           </div>
           <div>
             <div className="flex items-center space-x-2">
@@ -154,6 +155,19 @@ export default function StratixIQDashboard() {
           </div>
         </div>
       </header>
+
+      {/* Back Button Navigation Header for Sub-Views */}
+      {activeTab !== "match" && (
+        <div className="mb-4">
+          <button
+            onClick={() => setActiveTab("match")}
+            className="inline-flex items-center space-x-2 px-3.5 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 text-xs font-medium transition"
+          >
+            <ArrowLeft className="w-4 h-4 text-blue-400" />
+            <span>← Back to Project Staffing Engine</span>
+          </button>
+        </div>
+      )}
 
       {/* Navigation Tabs */}
       <nav className="flex space-x-2 border-b border-slate-800 pb-4 mb-6 overflow-x-auto">
@@ -256,7 +270,7 @@ export default function StratixIQDashboard() {
                   </>
                 ) : (
                   <>
-                    <Zap className="w-4 h-4" />
+                    <img src="/logo.png" alt="Logo" className="w-5 h-5 rounded object-contain" />
                     <span>Run Semantic Talent Search</span>
                   </>
                 )}
@@ -294,8 +308,9 @@ export default function StratixIQDashboard() {
                       }`}
                     >
                       {isTopMatch && (
-                        <div className="absolute top-0 right-0 bg-blue-600 text-white text-[10px] uppercase font-bold px-3 py-1 rounded-bl-lg shadow-md">
-                          Top Match
+                        <div className="absolute top-0 right-0 bg-blue-600 text-white text-[10px] uppercase font-bold px-3 py-1 rounded-bl-lg shadow-md flex items-center space-x-1">
+                          <img src="/logo.png" alt="Logo" className="w-3 h-3 rounded-full inline" />
+                          <span>Top Match</span>
                         </div>
                       )}
 
@@ -378,6 +393,16 @@ export default function StratixIQDashboard() {
       {activeTab === "upload" && (
         <div className="max-w-2xl mx-auto w-full">
           <div className="glass-panel p-6">
+            <div className="flex items-center justify-between mb-4">
+              <button
+                onClick={() => setActiveTab("match")}
+                className="inline-flex items-center space-x-1.5 text-xs text-blue-400 hover:text-blue-300 transition"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                <span>Back to Staffing Engine</span>
+              </button>
+            </div>
+
             <h2 className="text-xl font-bold text-white mb-1 flex items-center space-x-2">
               <UploadCloud className="w-5 h-5 text-blue-400" />
               <span>Ingest Employee Resume & Profile</span>
@@ -478,15 +503,25 @@ export default function StratixIQDashboard() {
       {activeTab === "roster" && (
         <div className="space-y-6">
           <div className="glass-panel p-4 flex items-center justify-between flex-wrap gap-4">
-            <div className="relative flex-1 max-w-md">
-              <Search className="w-4 h-4 absolute left-3 top-3 text-slate-500" />
-              <input
-                type="text"
-                value={rosterSearchQuery}
-                onChange={(e) => setRosterSearchQuery(e.target.value)}
-                placeholder="Search talent by name, role, or skill..."
-                className="w-full pl-9 pr-4 py-2 rounded-lg bg-slate-900 border border-slate-700 text-slate-100 placeholder-slate-500 text-xs focus:outline-none focus:border-blue-500"
-              />
+            <div className="flex items-center space-x-4 flex-1">
+              <button
+                onClick={() => setActiveTab("match")}
+                className="inline-flex items-center space-x-1.5 text-xs text-blue-400 hover:text-blue-300 transition"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                <span>Back</span>
+              </button>
+
+              <div className="relative flex-1 max-w-md">
+                <Search className="w-4 h-4 absolute left-3 top-3 text-slate-500" />
+                <input
+                  type="text"
+                  value={rosterSearchQuery}
+                  onChange={(e) => setRosterSearchQuery(e.target.value)}
+                  placeholder="Search talent by name, role, or skill..."
+                  className="w-full pl-9 pr-4 py-2 rounded-lg bg-slate-900 border border-slate-700 text-slate-100 placeholder-slate-500 text-xs focus:outline-none focus:border-blue-500"
+                />
+              </div>
             </div>
 
             <span className="text-xs text-slate-400">
@@ -543,9 +578,10 @@ export default function StratixIQDashboard() {
         </div>
       )}
 
-      {/* Footer */}
-      <footer className="mt-auto pt-8 pb-4 text-center text-xs text-slate-500 border-t border-slate-800/60 mt-12">
-        StratixIQ AI Agile Staffing Engine • Enterprise RAG & Vector Matching Engine
+      {/* Footer with Logo */}
+      <footer className="mt-auto pt-8 pb-4 text-center text-xs text-slate-500 border-t border-slate-800/60 mt-12 flex flex-col items-center justify-center space-y-2">
+        <img src="/logo.png" alt="StratixIQ Logo" className="h-6 w-auto object-contain opacity-70" />
+        <div>StratixIQ AI Agile Staffing Engine • Enterprise RAG & Vector Matching Engine</div>
       </footer>
     </div>
   );

@@ -5,7 +5,7 @@ from utils import extract_text_from_pdf, chunk_document_text, store_instance
 
 st.set_page_config(
     page_title="StratixIQ - AI Agile Talent Deployment Engine",
-    page_icon="⚡",
+    page_icon="logo.png",
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -68,6 +68,9 @@ INITIAL_CANDIDATES = [
 if "talent_pool" not in st.session_state:
     st.session_state["talent_pool"] = INITIAL_CANDIDATES
 
+if "active_tab_index" not in st.session_state:
+    st.session_state["active_tab_index"] = 0
+
 # Custom Styling
 st.markdown("""
 <style>
@@ -112,9 +115,10 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# Sidebar System Health & Info
+# Sidebar System Health & Brand Logo
 with st.sidebar:
-    st.image("https://img.icons8.com/isometric-folders/100/lightning-bolt.png", width=64)
+    if os.path.exists("logo.png"):
+        st.image("logo.png", width=180)
     st.markdown("## ⚡ StratixIQ Enterprise")
     st.markdown("**Agile Talent Matching Engine**")
     st.divider()
@@ -124,9 +128,14 @@ with st.sidebar:
     st.markdown("### Deployment Info")
     st.info("Deployed live via Streamlit Community Cloud. Fully standalone & cloud-ready.")
 
-# Main Application Layout
-st.markdown('<p class="main-header">⚡ StratixIQ: Agile Talent Deployment & Skill-Matching Engine</p>', unsafe_allow_html=True)
-st.caption("Enterprise RAG pipeline for immediate candidate staffing, structured score breakdown, and availability tracking")
+# Main Header with Brand Logo
+col_logo, col_title = st.columns([1, 6])
+with col_logo:
+    if os.path.exists("logo.png"):
+        st.image("logo.png", width=110)
+with col_title:
+    st.markdown('<p class="main-header">StratixIQ: Agile Talent Deployment & Skill-Matching Engine</p>', unsafe_allow_html=True)
+    st.caption("Enterprise RAG pipeline for immediate candidate staffing, structured score breakdown, and availability tracking")
 
 tab1, tab2, tab3 = st.tabs(["🎯 Project Staffing Engine", "📤 Upload Resume (PDF)", "👥 Talent Roster Matrix"])
 
@@ -233,6 +242,9 @@ with tab1:
 
 # TAB 2: UPLOAD RESUME (PDF)
 with tab2:
+    st.markdown("### ⬅ Navigation")
+    st.info("💡 Tip: You can return to the main Staffing Engine at any time.")
+    
     st.subheader("Ingest Employee PDF Resume & Skills Profile")
     st.caption("Parse document layout using PyMuPDF and generate vector embeddings for instant search indexing.")
     
