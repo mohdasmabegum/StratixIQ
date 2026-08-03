@@ -1,11 +1,19 @@
 import streamlit as st
 import os
 from typing import List, Dict, Any
+from PIL import Image
 from utils import extract_text_from_pdf, chunk_document_text, store_instance
+
+logo_icon = "⚡"
+if os.path.exists("logo.png"):
+    try:
+        logo_icon = Image.open("logo.png")
+    except Exception:
+        pass
 
 st.set_page_config(
     page_title="StratixIQ - AI Agile Talent Deployment Engine",
-    page_icon="logo.png" if os.path.exists("logo.png") else "⚡",
+    page_icon=logo_icon,
     layout="wide",
     initial_sidebar_state="collapsed"
 )
