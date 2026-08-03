@@ -1,5 +1,6 @@
 import streamlit as st
 import os
+import time
 from typing import List, Dict, Any
 from PIL import Image
 from utils import extract_text_from_pdf, chunk_document_text, store_instance
@@ -15,7 +16,7 @@ st.set_page_config(
     page_title="StratixIQ - AI Agile Talent Deployment Engine",
     page_icon=logo_icon,
     layout="wide",
-    initial_sidebar_state="expanded"
+    initial_sidebar_state="expanded" if st.session_state.get("splash_done") else "collapsed"
 )
 
 # Initial Talent Pool Dataset
@@ -76,298 +77,388 @@ INITIAL_CANDIDATES = [
 if "talent_pool" not in st.session_state:
     st.session_state["talent_pool"] = INITIAL_CANDIDATES
 
+if "splash_done" not in st.session_state:
+    st.session_state["splash_done"] = False
+
 if "deploy_modal_candidate" not in st.session_state:
     st.session_state["deploy_modal_candidate"] = None
 
-# Pure Custom CSS - Clean, Neat & Modern
-st.markdown("""
+# Hide Streamlit toolbars & header
+hide_sidebar_css = "" if st.session_state["splash_done"] else "[data-testid='stSidebar'] {display: none !important;}"
+
+st.markdown(f"""
 <style>
     /* Hide Streamlit Header, Dots & Toolbar */
-    #MainMenu {visibility: hidden;}
-    header {visibility: hidden !important;}
-    footer {visibility: hidden !important;}
-    [data-testid="stHeader"] {display: none !important;}
-    [data-testid="stToolbar"] {display: none !important;}
-    [data-testid="stDecoration"] {display: none !important;}
-    [data-testid="stStatusWidget"] {display: none !important;}
-    .stDeployButton {display: none !important;}
-    button[title="View code"] {display: none !important;}
+    #MainMenu {{visibility: hidden;}}
+    header {{visibility: hidden !important;}}
+    footer {{visibility: hidden !important;}}
+    [data-testid="stHeader"] {{display: none !important;}}
+    [data-testid="stToolbar"] {{display: none !important;}}
+    [data-testid="stDecoration"] {{display: none !important;}}
+    [data-testid="stStatusWidget"] {{display: none !important;}}
+    .stDeployButton {{display: none !important;}}
+    button[title="View code"] {{display: none !important;}}
 
-    /* Clean Image Styling */
-    img {
+    {hide_sidebar_css}
+
+    /* Keyframe Animations for Stylish Splash */
+    @keyframes zoomInLogo {{
+        0% {{ transform: scale(0.85); opacity: 0; filter: drop-shadow(0 0 0px rgba(59, 130, 246, 0)); }}
+        50% {{ transform: scale(1.04); opacity: 1; filter: drop-shadow(0 20px 40px rgba(59, 130, 246, 0.4)); }}
+        100% {{ transform: scale(1); opacity: 1; filter: drop-shadow(0 15px 30px rgba(139, 92, 246, 0.3)); }}
+    }}
+
+    @keyframes fadeInUpText {{
+        0% {{ opacity: 0; transform: translateY(15px); }}
+        100% {{ opacity: 1; transform: translateY(0); }}
+    }}
+
+    .splash-card {{
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        padding: 4rem 1.5rem;
+        min-height: 75vh;
+    }}
+
+    .splash-logo-box {{
+        background-color: #FFFFFF !important;
+        padding: 1.5rem;
+        border-radius: 1.5rem;
+        box-shadow: 0 20px 50px rgba(59, 130, 246, 0.35);
+        display: inline-block;
+        animation: zoomInLogo 1.4s ease-out forwards;
+        margin-bottom: 1.75rem;
+    }}
+
+    .splash-title {{
+        font-size: 4rem;
+        font-weight: 900;
+        letter-spacing: -0.03em;
+        background: linear-gradient(90deg, #60A5FA, #A78BFA);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        animation: fadeInUpText 1.2s ease-out forwards;
+        margin-bottom: 0.5rem;
+    }}
+
+    .splash-subtitle {{
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: #F1F5F9;
+        animation: fadeInUpText 1.4s ease-out forwards;
+        margin-bottom: 0.5rem;
+    }}
+
+    .splash-tagline {{
+        font-size: 1.05rem;
+        color: #94A3B8;
+        max-width: 600px;
+        animation: fadeInUpText 1.6s ease-out forwards;
+    }}
+
+    /* Main App Header & Cards */
+    img {{
         border-radius: 12px !important;
         background-color: #FFFFFF !important;
         padding: 6px !important;
         box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25) !important;
-    }
+    }}
 
-    /* CSS Hover & Transition Effects */
-    .stButton button {
+    .stButton button {{
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
         border-radius: 0.65rem !important;
         font-weight: 600 !important;
-    }
-    .stButton button:hover {
+    }}
+    .stButton button:hover {{
         transform: translateY(-2px) scale(1.02) !important;
         box-shadow: 0 10px 25px rgba(59, 130, 246, 0.35) !important;
-    }
+    }}
 
-    .main-header {
+    .main-header {{
         font-size: 2.3rem;
         font-weight: 800;
         background: linear-gradient(90deg, #60A5FA, #A78BFA);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         margin-bottom: 0.2rem;
-    }
+    }}
 
-    .metric-card {
+    .metric-card {{
         background-color: rgba(30, 41, 59, 0.75);
         border: 1px solid rgba(255, 255, 255, 0.12);
         border-radius: 0.85rem;
         padding: 1.25rem;
         margin-bottom: 1rem;
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-    .metric-card:hover {
+    }}
+    .metric-card:hover {{
         border-color: rgba(59, 130, 246, 0.5);
         transform: translateY(-4px);
         box-shadow: 0 16px 32px -6px rgba(59, 130, 246, 0.25);
-    }
+    }}
 
-    .badge-avail {
+    .badge-avail {{
         background-color: rgba(16, 185, 129, 0.2);
         color: #34D399;
         padding: 0.2rem 0.6rem;
         border-radius: 0.375rem;
         font-size: 0.8rem;
         font-weight: 600;
-    }
-    .badge-assigned {
+    }}
+    .badge-assigned {{
         background-color: rgba(245, 158, 11, 0.2);
         color: #FBBF24;
         padding: 0.2rem 0.6rem;
         border-radius: 0.375rem;
         font-size: 0.8rem;
         font-weight: 600;
-    }
-    .badge-part {
+    }}
+    .badge-part {{
         background-color: rgba(139, 92, 246, 0.2);
         color: #C084FC;
         padding: 0.2rem 0.6rem;
         border-radius: 0.375rem;
         font-size: 0.8rem;
         font-weight: 600;
-    }
+    }}
 </style>
 """, unsafe_allow_html=True)
 
-# Sidebar Navigation & System Info
-with st.sidebar:
-    if os.path.exists("logo.png"):
-        st.image("logo.png", width=220)
-    st.markdown("## ⚡ StratixIQ Enterprise")
-    st.markdown("**Agile Talent Matching Engine**")
-    st.divider()
-    st.metric("Total Indexed Talent", f"{len(st.session_state['talent_pool'])} Profiles")
-    st.divider()
-    st.info("Direct Enterprise Access • RAG Vector Search & Candidate Deployment Engine")
-
-# Main App Header with Full Size Logo
-col_logo, col_title = st.columns([1.5, 6])
-with col_logo:
-    if os.path.exists("logo.png"):
-        st.image("logo.png", width=180)
-with col_title:
-    st.markdown('<p class="main-header">StratixIQ: Agile Talent Deployment & Skill-Matching Engine</p>', unsafe_allow_html=True)
-    st.caption("AI-driven RAG vector pipeline for instant candidate staffing, structured score breakdown, and availability tracking")
-
-tab1, tab2, tab3 = st.tabs(["🎯 Project Staffing Engine", "📤 Upload Resume (PDF)", "👥 Talent Roster Matrix"])
-
-# TAB 1: PROJECT STAFFING ENGINE
-with tab1:
-    st.subheader("Match Engineering Requirements to Internal Talent Pool")
+# ==========================================
+# STYLISH SPLASH SCREEN (FULL LOGO + APP NAME BELOW + 2.5s AUTO-REDIRECT)
+# ==========================================
+if not st.session_state["splash_done"]:
+    st.markdown('<div class="splash-card">', unsafe_allow_html=True)
     
-    st.markdown("**Sample Project Prompts:**")
-    col_p1, col_p2, col_p3 = st.columns(3)
-    
-    prompt_input = ""
-    if col_p1.button("Prompt #1: FastAPI + RAG Vector Engineer"):
-        prompt_input = "Need a Senior Full-Stack Engineer with Python, FastAPI, ChromaDB vector store, and React for immediate sprint deployment."
-    if col_p2.button("Prompt #2: ML Architect & LLM Fine-Tuning"):
-        prompt_input = "Looking for a Machine Learning Architect experienced in PyTorch, LangChain LLM fine-tuning, and vector database indexing."
-    if col_p3.button("Prompt #3: Cloud DevOps & AWS Specialist"):
-        prompt_input = "Require a Cloud DevOps Engineer with AWS CDK, Kubernetes, Docker, and CI/CD automation background."
+    col_center = st.columns([1, 1, 1])[1]
+    with col_center:
+        st.markdown('<div class="splash-logo-box">', unsafe_allow_html=True)
+        if os.path.exists("logo.png"):
+            st.image("logo.png", width=220)
+        st.markdown('</div>', unsafe_allow_html=True)
 
-    project_desc = st.text_area(
-        "Enter Project Technical Requirements / Scope Description",
-        value=prompt_input if prompt_input else "",
-        placeholder="Paste engineering project description here...",
-        height=120
-    )
-    
-    col_opt1, col_opt2 = st.columns([2, 1])
-    with col_opt1:
-        selected_availability = st.selectbox("Filter Availability Status", ["All Availability", "Available Immediately", "Part-time bandwidth (50%)", "Assigned until next month"])
-    with col_opt2:
-        top_k = st.slider("Top Candidates to Retrieve", 1, 5, 3)
+    st.markdown('<p class="splash-title">StratixIQ</p>', unsafe_allow_html=True)
+    st.markdown('<p class="splash-subtitle">Agile Talent Deployment & Skill-Matching Engine</p>', unsafe_allow_html=True)
+    st.markdown('<p class="splash-tagline">AI-driven RAG vector pipeline for instant candidate staffing, structured score breakdown, and availability tracking</p>', unsafe_allow_html=True)
+    st.markdown('</div>', unsafe_allow_html=True)
 
-    if st.button("🚀 Run Semantic Talent Search", type="primary"):
-        if project_desc.strip():
-            st.divider()
-            st.markdown("### 🏆 Top Candidate Shortlist & Skill-Gap Analysis")
-            
-            query_lower = project_desc.lower()
-            query_words = set(query_lower.split())
-            
-            matches = []
-            for cand in st.session_state["talent_pool"]:
-                if selected_availability != "All Availability" and cand["bandwidth_status"] != selected_availability:
-                    continue
-                    
-                cand_text = " ".join([cand["role"], cand["bio"]] + cand["skills"] + cand["past_projects"]).lower()
-                cand_words = set(cand_text.split())
-                
-                intersection = query_words.intersection(cand_words)
-                matched_skills = [s for s in cand["skills"] if s.lower() in query_lower]
-                
-                tech_keywords = ["kubernetes", "aws cdk", "fastapi", "chromadb", "next.js", "pytorch", "go", "redis", "docker"]
-                skill_gaps = [k.upper() for k in tech_keywords if k in query_lower and k not in [s.lower() for s in cand["skills"]]]
-                
-                raw_score = 45 + (len(intersection) * 4) + (len(matched_skills) * 10)
-                match_score = min(98, max(55, raw_score))
-                
-                rationale = f"{cand['name']} brings verified hands-on background in {', '.join(matched_skills[:3]) if matched_skills else 'core engineering disciplines'}. Currently rated at {cand['bandwidth_status']}."
-                
-                matches.append({
-                    "cand": cand,
-                    "score": match_score,
-                    "matched_skills": matched_skills if matched_skills else cand["skills"][:3],
-                    "skill_gaps": skill_gaps[:3],
-                    "rationale": rationale
-                })
-                
-            matches.sort(key=lambda x: x["score"], reverse=True)
-            matches = matches[:top_k]
-            
-            if not matches:
-                st.warning("No candidates matched the selected availability filter.")
-            else:
-                for idx, match in enumerate(matches):
-                    cand = match["cand"]
-                    
-                    status_class = "badge-avail"
-                    if "Assigned" in cand["bandwidth_status"]:
-                        status_class = "badge-assigned"
-                    elif "Part-time" in cand["bandwidth_status"]:
-                        status_class = "badge-part"
-                        
-                    with st.container():
-                        st.markdown(f'<div class="metric-card">', unsafe_allow_html=True)
-                        c1, c2 = st.columns([3, 1])
-                        with c1:
-                            st.markdown(f"### #{idx+1} {cand['name']} - *{cand['role']}*")
-                            st.markdown(f'<span class="{status_class}">{cand["bandwidth_status"]}</span> • **{cand["years_experience"]} Yrs Experience**', unsafe_allow_html=True)
-                        with c2:
-                            st.metric(label="Match Confidence", value=f"{match['score']}%")
-                            
-                        st.markdown(f"**Verified Matching Skills:** {', '.join(match['matched_skills'])}")
-                        if match['skill_gaps']:
-                            st.markdown(f"**Potential Skill Gaps:** {', '.join(match['skill_gaps'])}")
-                        
-                        st.info(f"**Strategic Deployment Rationale:** {match['rationale']}")
-                        
-                        if st.button(f"⚡ Deploy {cand['name']} to Sprint", key=f"deploy_{cand['id']}"):
-                            st.session_state["deploy_modal_candidate"] = cand
-                            st.toast(f"🎉 Successfully assigned {cand['name']} to sprint deployment!", icon="🚀")
-                            st.rerun()
-                        st.markdown('</div>', unsafe_allow_html=True)
-        else:
-            st.error("Please enter a project requirement description to run semantic matching.")
+    time.sleep(2.5)
+    st.session_state["splash_done"] = True
+    st.rerun()
 
-    # Interactive Deployment Confirmation Popup
-    if st.session_state["deploy_modal_candidate"]:
-        dep_cand = st.session_state["deploy_modal_candidate"]
+# ==========================================
+# MAIN APPLICATION DASHBOARD (REVEALED AFTER SPLASH REDIRECT)
+# ==========================================
+else:
+    # Sidebar Navigation & System Info
+    with st.sidebar:
+        if os.path.exists("logo.png"):
+            st.image("logo.png", width=200)
+        st.markdown("## ⚡ StratixIQ Enterprise")
+        st.markdown("**Agile Talent Matching Engine**")
         st.divider()
-        st.success(f"✅ **Deployment Status Confirmed**: Candidate **{dep_cand['name']}** ({dep_cand['role']}) has been assigned to project sprint. Resource team notified!")
-        if st.button("Close Popup"):
-            st.session_state["deploy_modal_candidate"] = None
-            st.rerun()
+        st.metric("Total Indexed Talent", f"{len(st.session_state['talent_pool'])} Profiles")
+        st.divider()
+        st.info("Direct Enterprise Access • RAG Vector Search & Candidate Deployment Engine")
 
-# TAB 2: UPLOAD RESUME (PDF)
-with tab2:
-    st.subheader("Ingest Employee PDF Resume & Skills Profile")
-    st.caption("Parse document layout using PyMuPDF and generate vector embeddings for instant search indexing.")
-    
-    with st.form("resume_upload_form", clear_on_submit=True):
-        c_name = st.text_input("Candidate Full Name *", placeholder="e.g. Sarah Connor")
-        c_role = st.text_input("Candidate Role / Job Title", placeholder="e.g. Senior AI Engineer")
-        c_status = st.selectbox("Availability Bandwidth *", ["Available Immediately", "Part-time bandwidth (50%)", "Assigned until next month"])
-        c_skills = st.text_input("Key Skills (Comma-separated)", placeholder="e.g. Python, FastAPI, PyMuPDF, ChromaDB, Docker")
-        c_bio = st.text_area("Profile Summary / Bio", placeholder="Brief summary of candidate background...")
-        uploaded_pdf = st.file_uploader("Upload Resume (PDF)", type=["pdf"])
+    # Main App Header with Full Size Logo
+    col_logo, col_title = st.columns([1.5, 6])
+    with col_logo:
+        if os.path.exists("logo.png"):
+            st.image("logo.png", width=170)
+    with col_title:
+        st.markdown('<p class="main-header">StratixIQ: Agile Talent Deployment & Skill-Matching Engine</p>', unsafe_allow_html=True)
+        st.caption("AI-driven RAG vector pipeline for instant candidate staffing, structured score breakdown, and availability tracking")
+
+    tab1, tab2, tab3 = st.tabs(["🎯 Project Staffing Engine", "📤 Upload Resume (PDF)", "👥 Talent Roster Matrix"])
+
+    # TAB 1: PROJECT STAFFING ENGINE
+    with tab1:
+        st.subheader("Match Engineering Requirements to Internal Talent Pool")
         
-        submitted = st.form_submit_button("Index Profile into Vector DB", type="primary")
+        st.markdown("**Sample Project Prompts:**")
+        col_p1, col_p2, col_p3 = st.columns(3)
         
-        if submitted:
-            if c_name.strip():
-                extracted_text = ""
-                if uploaded_pdf is not None:
-                    try:
-                        pdf_bytes = uploaded_pdf.read()
-                        extracted_text = extract_text_from_pdf(pdf_bytes)
-                        st.info(f"Successfully extracted {len(extracted_text)} characters from uploaded PDF using PyMuPDF.")
-                    except Exception as e:
-                        st.warning(f"Note on PDF parsing: {e}")
+        prompt_input = ""
+        if col_p1.button("Prompt #1: FastAPI + RAG Vector Engineer"):
+            prompt_input = "Need a Senior Full-Stack Engineer with Python, FastAPI, ChromaDB vector store, and React for immediate sprint deployment."
+        if col_p2.button("Prompt #2: ML Architect & LLM Fine-Tuning"):
+            prompt_input = "Looking for a Machine Learning Architect experienced in PyTorch, LangChain LLM fine-tuning, and vector database indexing."
+        if col_p3.button("Prompt #3: Cloud DevOps & AWS Specialist"):
+            prompt_input = "Require a Cloud DevOps Engineer with AWS CDK, Kubernetes, Docker, and CI/CD automation background."
+
+        project_desc = st.text_area(
+            "Enter Project Technical Requirements / Scope Description",
+            value=prompt_input if prompt_input else "",
+            placeholder="Paste engineering project description here...",
+            height=120
+        )
+        
+        col_opt1, col_opt2 = st.columns([2, 1])
+        with col_opt1:
+            selected_availability = st.selectbox("Filter Availability Status", ["All Availability", "Available Immediately", "Part-time bandwidth (50%)", "Assigned until next month"])
+        with col_opt2:
+            top_k = st.slider("Top Candidates to Retrieve", 1, 5, 3)
+
+        if st.button("🚀 Run Semantic Talent Search", type="primary"):
+            if project_desc.strip():
+                st.divider()
+                st.markdown("### 🏆 Top Candidate Shortlist & Skill-Gap Analysis")
                 
-                skills_list = [s.strip() for s in c_skills.split(",") if s.strip()] if c_skills else ["Python", "Engineering"]
+                query_lower = project_desc.lower()
+                query_words = set(query_lower.split())
                 
-                new_candidate = {
-                    "id": f"cand_{len(st.session_state['talent_pool']) + 1}",
-                    "name": c_name.strip(),
-                    "role": c_role.strip() if c_role.strip() else "Software Engineer",
-                    "bandwidth_status": c_status,
-                    "skills": skills_list,
-                    "bio": c_bio.strip() if c_bio.strip() else "Indexed candidate profile.",
-                    "years_experience": 5,
-                    "past_projects": ["Enterprise Resume Ingestion"]
-                }
+                matches = []
+                for cand in st.session_state["talent_pool"]:
+                    if selected_availability != "All Availability" and cand["bandwidth_status"] != selected_availability:
+                        continue
+                        
+                    cand_text = " ".join([cand["role"], cand["bio"]] + cand["skills"] + cand["past_projects"]).lower()
+                    cand_words = set(cand_text.split())
+                    
+                    intersection = query_words.intersection(cand_words)
+                    matched_skills = [s for s in cand["skills"] if s.lower() in query_lower]
+                    
+                    tech_keywords = ["kubernetes", "aws cdk", "fastapi", "chromadb", "next.js", "pytorch", "go", "redis", "docker"]
+                    skill_gaps = [k.upper() for k in tech_keywords if k in query_lower and k not in [s.lower() for s in cand["skills"]]]
+                    
+                    raw_score = 45 + (len(intersection) * 4) + (len(matched_skills) * 10)
+                    match_score = min(98, max(55, raw_score))
+                    
+                    rationale = f"{cand['name']} brings verified hands-on background in {', '.join(matched_skills[:3]) if matched_skills else 'core engineering disciplines'}. Currently rated at {cand['bandwidth_status']}."
+                    
+                    matches.append({
+                        "cand": cand,
+                        "score": match_score,
+                        "matched_skills": matched_skills if matched_skills else cand["skills"][:3],
+                        "skill_gaps": skill_gaps[:3],
+                        "rationale": rationale
+                    })
+                    
+                matches.sort(key=lambda x: x["score"], reverse=True)
+                matches = matches[:top_k]
                 
-                st.session_state["talent_pool"].insert(0, new_candidate)
-                store_instance.add_profile(c_name.strip(), extracted_text or c_bio, {"candidate_name": c_name, "bandwidth_status": c_status})
-                
-                st.toast(f"✅ Indexed profile for {c_name} into vector store!", icon="✨")
-                st.success(f"Successfully indexed profile for **{c_name}** into vector store!")
+                if not matches:
+                    st.warning("No candidates matched the selected availability filter.")
+                else:
+                    for idx, match in enumerate(matches):
+                        cand = match["cand"]
+                        
+                        status_class = "badge-avail"
+                        if "Assigned" in cand["bandwidth_status"]:
+                            status_class = "badge-assigned"
+                        elif "Part-time" in cand["bandwidth_status"]:
+                            status_class = "badge-part"
+                            
+                        with st.container():
+                            st.markdown(f'<div class="metric-card">', unsafe_allow_html=True)
+                            c1, c2 = st.columns([3, 1])
+                            with c1:
+                                st.markdown(f"### #{idx+1} {cand['name']} - *{cand['role']}*")
+                                st.markdown(f'<span class="{status_class}">{cand["bandwidth_status"]}</span> • **{cand["years_experience"]} Yrs Experience**', unsafe_allow_html=True)
+                            with c2:
+                                st.metric(label="Match Confidence", value=f"{match['score']}%")
+                                
+                            st.markdown(f"**Verified Matching Skills:** {', '.join(match['matched_skills'])}")
+                            if match['skill_gaps']:
+                                st.markdown(f"**Potential Skill Gaps:** {', '.join(match['skill_gaps'])}")
+                            
+                            st.info(f"**Strategic Deployment Rationale:** {match['rationale']}")
+                            
+                            if st.button(f"⚡ Deploy {cand['name']} to Sprint", key=f"deploy_{cand['id']}"):
+                                st.session_state["deploy_modal_candidate"] = cand
+                                st.toast(f"🎉 Successfully assigned {cand['name']} to sprint deployment!", icon="🚀")
+                                st.rerun()
+                            st.markdown('</div>', unsafe_allow_html=True)
             else:
-                st.error("Candidate Full Name is required.")
+                st.error("Please enter a project requirement description to run semantic matching.")
 
-# TAB 3: TALENT ROSTER MATRIX
-with tab3:
-    st.subheader("Internal Talent Pool Roster Matrix")
-    
-    search_query = st.text_input("Search talent by name, role, or skill...", placeholder="Type e.g. Python, FastAPI, DevOps...")
-    
-    roster = st.session_state["talent_pool"]
-    if search_query.strip():
-        q = search_query.lower()
-        roster = [c for c in roster if q in c["name"].lower() or q in c["role"].lower() or any(q in s.lower() for s in c["skills"])]
+        # Interactive Deployment Confirmation Popup
+        if st.session_state["deploy_modal_candidate"]:
+            dep_cand = st.session_state["deploy_modal_candidate"]
+            st.divider()
+            st.success(f"✅ **Deployment Status Confirmed**: Candidate **{dep_cand['name']}** ({dep_cand['role']}) has been assigned to project sprint. Resource team notified!")
+            if st.button("Close Popup"):
+                st.session_state["deploy_modal_candidate"] = None
+                st.rerun()
+
+    # TAB 2: UPLOAD RESUME (PDF)
+    with tab2:
+        st.subheader("Ingest Employee PDF Resume & Skills Profile")
+        st.caption("Parse document layout using PyMuPDF and generate vector embeddings for instant search indexing.")
         
-    st.markdown(f"**Showing {len(roster)} of {len(st.session_state['talent_pool'])} Candidates**")
-    
-    cols = st.columns(2)
-    for idx, cand in enumerate(roster):
-        col = cols[idx % 2]
-        with col:
-            status_class = "badge-avail"
-            if "Assigned" in cand["bandwidth_status"]:
-                status_class = "badge-assigned"
-            elif "Part-time" in cand["bandwidth_status"]:
-                status_class = "badge-part"
-                
-            st.markdown(f'<div class="metric-card">', unsafe_allow_html=True)
-            st.markdown(f"### {cand['name']}")
-            st.markdown(f"**{cand['role']}** • {cand['years_experience']} Yrs Experience")
-            st.markdown(f'<span class="{status_class}">{cand["bandwidth_status"]}</span>', unsafe_allow_html=True)
-            st.write(cand["bio"])
-            st.markdown(f"**Skills:** {', '.join(cand['skills'])}")
-            st.markdown('</div>', unsafe_allow_html=True)
+        with st.form("resume_upload_form", clear_on_submit=True):
+            c_name = st.text_input("Candidate Full Name *", placeholder="e.g. Sarah Connor")
+            c_role = st.text_input("Candidate Role / Job Title", placeholder="e.g. Senior AI Engineer")
+            c_status = st.selectbox("Availability Bandwidth *", ["Available Immediately", "Part-time bandwidth (50%)", "Assigned until next month"])
+            c_skills = st.text_input("Key Skills (Comma-separated)", placeholder="e.g. Python, FastAPI, PyMuPDF, ChromaDB, Docker")
+            c_bio = st.text_area("Profile Summary / Bio", placeholder="Brief summary of candidate background...")
+            uploaded_pdf = st.file_uploader("Upload Resume (PDF)", type=["pdf"])
+            
+            submitted = st.form_submit_button("Index Profile into Vector DB", type="primary")
+            
+            if submitted:
+                if c_name.strip():
+                    extracted_text = ""
+                    if uploaded_pdf is not None:
+                        try:
+                            pdf_bytes = uploaded_pdf.read()
+                            extracted_text = extract_text_from_pdf(pdf_bytes)
+                            st.info(f"Successfully extracted {len(extracted_text)} characters from uploaded PDF using PyMuPDF.")
+                        except Exception as e:
+                            st.warning(f"Note on PDF parsing: {e}")
+                    
+                    skills_list = [s.strip() for s in c_skills.split(",") if s.strip()] if c_skills else ["Python", "Engineering"]
+                    
+                    new_candidate = {
+                        "id": f"cand_{len(st.session_state['talent_pool']) + 1}",
+                        "name": c_name.strip(),
+                        "role": c_role.strip() if c_role.strip() else "Software Engineer",
+                        "bandwidth_status": c_status,
+                        "skills": skills_list,
+                        "bio": c_bio.strip() if c_bio.strip() else "Indexed candidate profile.",
+                        "years_experience": 5,
+                        "past_projects": ["Enterprise Resume Ingestion"]
+                    }
+                    
+                    st.session_state["talent_pool"].insert(0, new_candidate)
+                    store_instance.add_profile(c_name.strip(), extracted_text or c_bio, {"candidate_name": c_name, "bandwidth_status": c_status})
+                    
+                    st.toast(f"✅ Indexed profile for {c_name} into vector store!", icon="✨")
+                    st.success(f"Successfully indexed profile for **{c_name}** into vector store!")
+                else:
+                    st.error("Candidate Full Name is required.")
+
+    # TAB 3: TALENT ROSTER MATRIX
+    with tab3:
+        st.subheader("Internal Talent Pool Roster Matrix")
+        
+        search_query = st.text_input("Search talent by name, role, or skill...", placeholder="Type e.g. Python, FastAPI, DevOps...")
+        
+        roster = st.session_state["talent_pool"]
+        if search_query.strip():
+            q = search_query.lower()
+            roster = [c for c in roster if q in c["name"].lower() or q in c["role"].lower() or any(q in s.lower() for s in c["skills"])]
+            
+        st.markdown(f"**Showing {len(roster)} of {len(st.session_state['talent_pool'])} Candidates**")
+        
+        cols = st.columns(2)
+        for idx, cand in enumerate(roster):
+            col = cols[idx % 2]
+            with col:
+                status_class = "badge-avail"
+                if "Assigned" in cand["bandwidth_status"]:
+                    status_class = "badge-assigned"
+                elif "Part-time" in cand["bandwidth_status"]:
+                    status_class = "badge-part"
+                    
+                st.markdown(f'<div class="metric-card">', unsafe_allow_html=True)
+                st.markdown(f"### {cand['name']}")
+                st.markdown(f"**{cand['role']}** • {cand['years_experience']} Yrs Experience")
+                st.markdown(f'<span class="{status_class}">{cand["bandwidth_status"]}</span>', unsafe_allow_html=True)
+                st.write(cand["bio"])
+                st.markdown(f"**Skills:** {', '.join(cand['skills'])}")
+                st.markdown('</div>', unsafe_allow_html=True)
