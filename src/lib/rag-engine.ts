@@ -85,7 +85,7 @@ export function addCandidateToPool(profile: Omit<CandidateProfile, "id">): Candi
   return newCandidate;
 }
 
-export function matchTalentAgainstRequirement(projectDescription: str): MatchResult[] {
+export function matchTalentAgainstRequirement(projectDescription: string): MatchResult[] {
   const queryLower = projectDescription.toLowerCase();
   const words = queryLower.split(/\W+/).filter(w => w.length > 2);
 
