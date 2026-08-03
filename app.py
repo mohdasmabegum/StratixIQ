@@ -83,13 +83,16 @@ if "authenticated" not in st.session_state:
 if "user_info" not in st.session_state:
     st.session_state["user_info"] = None
 
+if "splash_seen" not in st.session_state:
+    st.session_state["splash_seen"] = False
+
 if "screen" not in st.session_state:
-    st.session_state["screen"] = "splash" # 'splash', 'login', 'register', 'dashboard'
+    st.session_state["screen"] = "splash" if not st.session_state["splash_seen"] else "login"
 
 if "deploy_modal_candidate" not in st.session_state:
     st.session_state["deploy_modal_candidate"] = None
 
-# Hide Streamlit toolbars & header
+# Hide Streamlit toolbars & header + Sidebar hide when unauthenticated
 hide_sidebar_css = "" if st.session_state["authenticated"] else "[data-testid='stSidebar'] {display: none !important;}"
 
 st.markdown(f"""
@@ -115,11 +118,11 @@ st.markdown(f"""
 
     @keyframes pulseGlow {{
         0% {{ box-shadow: 0 0 15px rgba(59, 130, 246, 0.2); }}
-        50% {{ box-shadow: 0 0 30px rgba(59, 130, 246, 0.5); }}
+        50% {{ box-shadow: 0 0 30px rgba(59, 130, 246, 0.45); }}
         100% {{ box-shadow: 0 0 15px rgba(59, 130, 246, 0.2); }}
     }}
 
-    /* White Background Logo Containers */
+    /* White Background Logo Containers - No Overlaps */
     .logo-white-bg {{
         background-color: #FFFFFF !important;
         padding: 1.25rem;
@@ -127,14 +130,16 @@ st.markdown(f"""
         box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35);
         display: inline-block;
         animation: floatLogo 2.5s ease-in-out infinite alternate;
+        margin-bottom: 1.25rem;
     }}
 
     .logo-white-bg-sm {{
         background-color: #FFFFFF !important;
-        padding: 0.6rem;
+        padding: 0.5rem;
         border-radius: 0.75rem;
         box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
         display: inline-block;
+        vertical-align: middle;
     }}
 
     /* CSS Hover & Transition Effects */
@@ -155,7 +160,7 @@ st.markdown(f"""
         justify-content: center;
         text-align: center;
         padding: 4rem 1rem;
-        min-height: 75vh;
+        min-height: 70vh;
     }}
 
     .splash-app-name {{
@@ -165,23 +170,22 @@ st.markdown(f"""
         background: linear-gradient(90deg, #60A5FA, #A78BFA);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
-        margin-top: 1.5rem;
+        margin-top: 1rem;
         margin-bottom: 0.5rem;
     }}
 
     .splash-tagline {{
-        font-size: 1.5rem;
+        font-size: 1.4rem;
         font-weight: 600;
         color: #F1F5F9;
         margin-bottom: 0;
     }}
 
     .auth-card {{
-        background: rgba(30, 41, 59, 0.85);
+        background: rgba(30, 41, 59, 0.9);
         border: 1px solid rgba(255, 255, 255, 0.15);
         border-radius: 1.25rem;
         padding: 2.25rem;
-        max-width: 460px;
         margin: 2rem auto;
         box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
         animation: pulseGlow 4s infinite;
@@ -247,12 +251,11 @@ def login_as_demo_user():
     st.session_state["screen"] = "dashboard"
 
 # ==========================================
-# SCREEN 1: SPLASH SCREEN (ONLY CENTERED LOGO WITH WHITE BACKGROUND & APP NAME BELOW, AUTO 3-SEC REDIRECT, NO LOADING BAR)
+# SCREEN 1: SPLASH SCREEN (ONLY CENTERED LOGO + WHITE BG + APP NAME, AUTO 3-SEC REDIRECT, NO OVERLAPS)
 # ==========================================
 if not st.session_state["authenticated"] and st.session_state["screen"] == "splash":
     st.markdown('<div class="splash-container">', unsafe_allow_html=True)
     
-    # White Background Logo Container in Center
     col_splash_center = st.columns([1, 1, 1])[1]
     with col_splash_center:
         st.markdown('<div class="logo-white-bg">', unsafe_allow_html=True)
@@ -260,30 +263,29 @@ if not st.session_state["authenticated"] and st.session_state["screen"] == "spla
             st.image("logo.png", width=160)
         st.markdown('</div>', unsafe_allow_html=True)
 
-    # App Name Below Logo
     st.markdown('<p class="splash-app-name">StratixIQ</p>', unsafe_allow_html=True)
     st.markdown('<p class="splash-tagline">Agile Talent Deployment & Skill-Matching Engine</p>', unsafe_allow_html=True)
     st.markdown('</div>', unsafe_allow_html=True)
 
-    # Clean 3-second auto-redirect (No loading bar)
+    # Auto-redirect after 3 seconds without looping or overlaps
     time.sleep(3)
+    st.session_state["splash_seen"] = True
     st.session_state["screen"] = "login"
     st.rerun()
 
 # ==========================================
-# SCREEN 2: LOGIN SCREEN (NO SPLASH INFO, WHITE BACKGROUND LOGO)
+# SCREEN 2: LOGIN SCREEN (NO OVERLAPS, WHITE LOGO CONTAINER)
 # ==========================================
 elif not st.session_state["authenticated"] and st.session_state["screen"] == "login":
     col_l1, col_l2, col_l3 = st.columns([1, 2, 1])
     with col_l2:
         st.markdown('<div class="auth-card">', unsafe_allow_html=True)
         
-        # Logo with White Background
         c_brand_logo, c_brand_text = st.columns([1, 3])
         with c_brand_logo:
             st.markdown('<div class="logo-white-bg-sm">', unsafe_allow_html=True)
             if os.path.exists("logo.png"):
-                st.image("logo.png", width=60)
+                st.image("logo.png", width=55)
             st.markdown('</div>', unsafe_allow_html=True)
         with c_brand_text:
             st.markdown("<h2 style='margin: 0; color: white; line-height: 1.2;'>StratixIQ</h2>", unsafe_allow_html=True)
@@ -326,7 +328,7 @@ elif not st.session_state["authenticated"] and st.session_state["screen"] == "lo
         st.markdown('</div>', unsafe_allow_html=True)
 
 # ==========================================
-# SCREEN 3: REGISTER SCREEN (NO SPLASH INFO, WHITE BACKGROUND LOGO)
+# SCREEN 3: REGISTER SCREEN (NO OVERLAPS, WHITE LOGO CONTAINER)
 # ==========================================
 elif not st.session_state["authenticated"] and st.session_state["screen"] == "register":
     col_r1, col_r2, col_r3 = st.columns([1, 2, 1])
@@ -337,7 +339,7 @@ elif not st.session_state["authenticated"] and st.session_state["screen"] == "re
         with c_reg_logo:
             st.markdown('<div class="logo-white-bg-sm">', unsafe_allow_html=True)
             if os.path.exists("logo.png"):
-                st.image("logo.png", width=60)
+                st.image("logo.png", width=55)
             st.markdown('</div>', unsafe_allow_html=True)
         with c_reg_text:
             st.markdown("<h2 style='margin: 0; color: white; line-height: 1.2;'>StratixIQ</h2>", unsafe_allow_html=True)
@@ -378,7 +380,7 @@ elif not st.session_state["authenticated"] and st.session_state["screen"] == "re
         st.markdown('</div>', unsafe_allow_html=True)
 
 # ==========================================
-# SCREEN 4: ACCOUNT DASHBOARD (AFTER LOGIN - NO REGISTER/LOGIN/DEMO CARDS VISIBLE)
+# SCREEN 4: ACCOUNT DASHBOARD (REVEALED ONLY AFTER LOGIN)
 # ==========================================
 else:
     user_info = st.session_state.get("user_info") or {"name": "Sarah Jenkins", "role": "Lead Engineering Manager"}
@@ -387,7 +389,7 @@ else:
     with st.sidebar:
         st.markdown('<div class="logo-white-bg-sm">', unsafe_allow_html=True)
         if os.path.exists("logo.png"):
-            st.image("logo.png", width=110)
+            st.image("logo.png", width=100)
         st.markdown('</div>', unsafe_allow_html=True)
         st.markdown("## ⚡ StratixIQ Enterprise")
         st.markdown("**Agile Talent Matching Engine**")
@@ -410,7 +412,7 @@ else:
     with col_logo:
         st.markdown('<div class="logo-white-bg-sm">', unsafe_allow_html=True)
         if os.path.exists("logo.png"):
-            st.image("logo.png", width=75)
+            st.image("logo.png", width=65)
         st.markdown('</div>', unsafe_allow_html=True)
     with col_title:
         st.markdown('<p class="main-header">StratixIQ: Agile Talent Deployment & Skill-Matching Engine</p>', unsafe_allow_html=True)
