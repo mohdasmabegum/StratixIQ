@@ -79,10 +79,10 @@ if "talent_pool" not in st.session_state:
 if "deploy_modal_candidate" not in st.session_state:
     st.session_state["deploy_modal_candidate"] = None
 
-# Custom CSS & Hide Streamlit Default Toolbars
+# Pure Custom CSS - Clean, Neat & Modern
 st.markdown("""
 <style>
-    /* Hide Streamlit Header & Toolbar */
+    /* Hide Streamlit Header, Dots & Toolbar */
     #MainMenu {visibility: hidden;}
     header {visibility: hidden !important;}
     footer {visibility: hidden !important;}
@@ -93,14 +93,12 @@ st.markdown("""
     .stDeployButton {display: none !important;}
     button[title="View code"] {display: none !important;}
 
-    /* White Background Logo Container */
-    .logo-white-bg-sm {
+    /* Clean Image Styling */
+    img {
+        border-radius: 12px !important;
         background-color: #FFFFFF !important;
-        padding: 0.5rem;
-        border-radius: 0.75rem;
-        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
-        display: inline-block;
-        vertical-align: middle;
+        padding: 6px !important;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25) !important;
     }
 
     /* CSS Hover & Transition Effects */
@@ -115,11 +113,12 @@ st.markdown("""
     }
 
     .main-header {
-        font-size: 2.2rem;
+        font-size: 2.3rem;
         font-weight: 800;
         background: linear-gradient(90deg, #60A5FA, #A78BFA);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
+        margin-bottom: 0.2rem;
     }
 
     .metric-card {
@@ -165,25 +164,20 @@ st.markdown("""
 
 # Sidebar Navigation & System Info
 with st.sidebar:
-    st.markdown('<div class="logo-white-bg-sm">', unsafe_allow_html=True)
     if os.path.exists("logo.png"):
-        st.image("logo.png", width=100)
-    st.markdown('</div>', unsafe_allow_html=True)
+        st.image("logo.png", width=220)
     st.markdown("## ⚡ StratixIQ Enterprise")
     st.markdown("**Agile Talent Matching Engine**")
     st.divider()
-    st.metric("Total Indexed Talent", len(st.session_state["talent_pool"]))
-    st.metric("Vector DB Status", "Active (ChromaDB / Memory)")
+    st.metric("Total Indexed Talent", f"{len(st.session_state['talent_pool'])} Profiles")
     st.divider()
     st.info("Direct Enterprise Access • RAG Vector Search & Candidate Deployment Engine")
 
-# Main App Header
-col_logo, col_title = st.columns([1, 6])
+# Main App Header with Full Size Logo
+col_logo, col_title = st.columns([1.5, 6])
 with col_logo:
-    st.markdown('<div class="logo-white-bg-sm">', unsafe_allow_html=True)
     if os.path.exists("logo.png"):
-        st.image("logo.png", width=65)
-    st.markdown('</div>', unsafe_allow_html=True)
+        st.image("logo.png", width=180)
 with col_title:
     st.markdown('<p class="main-header">StratixIQ: Agile Talent Deployment & Skill-Matching Engine</p>', unsafe_allow_html=True)
     st.caption("AI-driven RAG vector pipeline for instant candidate staffing, structured score breakdown, and availability tracking")
