@@ -83,12 +83,12 @@ if "splash_done" not in st.session_state:
 if "deploy_modal_candidate" not in st.session_state:
     st.session_state["deploy_modal_candidate"] = None
 
-# Hide Streamlit toolbars & header
+# Hide Streamlit toolbars, Manage App button & header
 hide_sidebar_css = "" if st.session_state["splash_done"] else "[data-testid='stSidebar'] {display: none !important;}"
 
 st.markdown(f"""
 <style>
-    /* Hide Streamlit Header, Dots & Toolbar */
+    /* Hide Streamlit Header, Toolbar, Footer & Manage App Button */
     #MainMenu {{visibility: hidden;}}
     header {{visibility: hidden !important;}}
     footer {{visibility: hidden !important;}}
@@ -96,6 +96,9 @@ st.markdown(f"""
     [data-testid="stToolbar"] {{display: none !important;}}
     [data-testid="stDecoration"] {{display: none !important;}}
     [data-testid="stStatusWidget"] {{display: none !important;}}
+    [data-testid="stManageAppButton"] {{display: none !important;}}
+    .stManageAppButton {{display: none !important;}}
+    button[aria-label="Manage app"] {{display: none !important;}}
     .stDeployButton {{display: none !important;}}
     button[title="View code"] {{display: none !important;}}
 
@@ -113,14 +116,17 @@ st.markdown(f"""
         100% {{ opacity: 1; transform: translateY(0); }}
     }}
 
+    /* Perfectly Centered Vertical & Horizontal Splash Screen */
     .splash-card {{
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: center;
         text-align: center;
-        padding: 4rem 1.5rem;
-        min-height: 75vh;
+        min-height: 80vh;
+        width: 100%;
+        margin: 0 auto;
+        padding: 2rem 1rem;
     }}
 
     .splash-logo-box {{
@@ -130,7 +136,7 @@ st.markdown(f"""
         box-shadow: 0 20px 50px rgba(59, 130, 246, 0.35);
         display: inline-block;
         animation: zoomInLogo 1.4s ease-out forwards;
-        margin-bottom: 1.75rem;
+        margin-bottom: 1.5rem;
     }}
 
     .splash-title {{
@@ -141,7 +147,9 @@ st.markdown(f"""
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         animation: fadeInUpText 1.2s ease-out forwards;
+        margin-top: 0;
         margin-bottom: 0.5rem;
+        line-height: 1.1;
     }}
 
     .splash-subtitle {{
@@ -150,13 +158,15 @@ st.markdown(f"""
         color: #F1F5F9;
         animation: fadeInUpText 1.4s ease-out forwards;
         margin-bottom: 0.5rem;
+        line-height: 1.3;
     }}
 
     .splash-tagline {{
         font-size: 1.05rem;
         color: #94A3B8;
-        max-width: 600px;
+        max-width: 620px;
         animation: fadeInUpText 1.6s ease-out forwards;
+        line-height: 1.5;
     }}
 
     /* Main App Header & Cards */
@@ -228,16 +238,14 @@ st.markdown(f"""
 """, unsafe_allow_html=True)
 
 # ==========================================
-# STYLISH SPLASH SCREEN (FULL LOGO + APP NAME BELOW + 2.5s AUTO-REDIRECT)
+# PERFECTLY CENTERED SPLASH SCREEN (FULL LOGO + APP NAME BELOW + AUTO-REDIRECT)
 # ==========================================
 if not st.session_state["splash_done"]:
     st.markdown('<div class="splash-card">', unsafe_allow_html=True)
     
-    col_center = st.columns([1, 1, 1])[1]
-    with col_center:
+    if os.path.exists("logo.png"):
         st.markdown('<div class="splash-logo-box">', unsafe_allow_html=True)
-        if os.path.exists("logo.png"):
-            st.image("logo.png", width=220)
+        st.image("logo.png", width=220)
         st.markdown('</div>', unsafe_allow_html=True)
 
     st.markdown('<p class="splash-title">StratixIQ</p>', unsafe_allow_html=True)
