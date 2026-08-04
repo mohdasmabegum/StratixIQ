@@ -5,7 +5,11 @@ from typing import List, Dict, Any, Optional
 import uvicorn
 import uuid
 
-from utils import extract_text_from_pdf, vector_store, llm_manager
+from utils import (
+    extract_text_from_pdf, vector_store, llm_manager,
+    squad_assembler, career_auditor, feedback_manager,
+    knowledge_graph_mgr, fairness_auditor
+)
 
 app = FastAPI(
     title="StratixIQ Talent Deployment & Skill-Matching API",
@@ -126,6 +130,22 @@ class UploadProfileResponse(BaseModel):
     candidate_id: str
     extracted_character_count: int
 
+class SquadRequest(BaseModel):
+    project_scope: str = Field(..., description="High-level project scope description")
+
+class CareerAuditRequest(BaseModel):
+    candidate_name: str
+    current_role: str
+    current_skills: List[str]
+    target_role: str
+
+class FeedbackRequest(BaseModel):
+    candidate_id: str
+    candidate_name: str
+    project_title: str
+    rating: int = Field(..., ge=1, le=5)
+    feedback_text: str
+
 # ==========================================
 # ASYNCHRONOUS API ROUTES
 # ==========================================
@@ -220,7 +240,6 @@ async def match_talent_requirements(payload: MatchRequest):
         raise HTTPException(status_code=400, detail="Project requirement description cannot be empty")
 
     try:
-        # Step 1: ChromaDB Cosine Distance Vector Search Retrieval
         vector_results = vector_store.query_candidates(
             query_text=payload.project_description,
             top_k=payload.top_k,
@@ -243,7 +262,6 @@ async def match_talent_requirements(payload: MatchRequest):
                     "past_projects": ["Vector DB Index"]
                 }
 
-            # Step 2: Enterprise Structured LLM Evaluation
             llm_eval = llm_manager.generate_structured_match(
                 project_desc=payload.project_description,
                 candidate_info=cand_profile
@@ -252,13 +270,17 @@ async def match_talent_requirements(payload: MatchRequest):
             explain_data = llm_eval.get("explainable_ai_breakdown", {})
             upskill_data = llm_eval.get("upskilling_path", {})
 
+            # Apply RL feedback multiplier boost
+            mult = feedback_manager.get_candidate_multiplier(cid)
+            boosted_score = min(99, int(llm_eval.get("match_percentage", 80) * mult))
+
             matches.append(CandidateMatchResponse(
                 id=cand_profile["id"],
                 name=cand_profile["name"],
                 role=cand_profile["role"],
                 bandwidth_status=cand_profile["bandwidth_status"],
                 skills=cand_profile["skills"],
-                match_percentage=llm_eval.get("match_percentage", 80),
+                match_percentage=boosted_score,
                 verified_strengths=llm_eval.get("verified_strengths", cand_profile["skills"][:3]),
                 skill_gaps=llm_eval.get("skill_gaps", []),
                 deployment_rationale=llm_eval.get("deployment_rationale", "Strong technical fit."),
@@ -277,6 +299,42 @@ async def match_talent_requirements(payload: MatchRequest):
         return matches
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Talent matching error: {str(e)}")
+
+# ==========================================
+# NEW ENDPOINTS FOR ADVANCED FEATURES
+# ==========================================
+@app.post("/assemble-squad")
+async def assemble_collaborative_squad(payload: SquadRequest):
+    if not payload.project_scope.strip():
+        raise HTTPException(status_code=400, detail="Project scope cannot be empty")
+    return squad_assembler.decompose_and_assemble(payload.project_scope, vector_store, llm_manager)
+
+@app.post("/career-growth-audit")
+async def audit_candidate_career_growth(payload: CareerAuditRequest):
+    return career_auditor.generate_career_audit(
+        candidate_name=payload.candidate_name,
+        current_role=payload.current_role,
+        current_skills=payload.current_skills,
+        target_role=payload.target_role
+    )
+
+@app.post("/submit-project-feedback")
+async def submit_project_feedback(payload: FeedbackRequest):
+    return feedback_manager.record_feedback(
+        candidate_id=payload.candidate_id,
+        candidate_name=payload.candidate_name,
+        project_title=payload.project_title,
+        rating=payload.rating,
+        feedback_text=payload.feedback_text
+    )
+
+@app.get("/knowledge-graph")
+async def get_enterprise_knowledge_graph():
+    return knowledge_graph_mgr.generate_graph_data(INITIAL_TALENT_POOL)
+
+@app.post("/audit-fairness")
+async def audit_algorithmic_fairness(payload: List[Dict[str, Any]]):
+    return fairness_auditor.audit_matching_fairness(payload)
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)
