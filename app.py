@@ -265,6 +265,29 @@ st.markdown(f"""
         border-radius: 0.5rem;
         margin-top: 0.75rem;
     }}
+
+    /* Fixed Bottom Footer Bar */
+    .fixed-footer-bar {{
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        width: 100%;
+        z-index: 9999;
+        background: rgba(15, 23, 42, 0.95);
+        backdrop-filter: blur(12px);
+        border-top: 1px solid rgba(255, 255, 255, 0.12);
+        text-align: center;
+        padding: 0.65rem 1rem;
+        color: #94A3B8;
+        font-size: 0.85rem;
+        box-shadow: 0 -8px 25px rgba(0, 0, 0, 0.4);
+    }}
+
+    /* Ensure bottom spacing so scrollable content doesn't get covered */
+    .main .block-container {{
+        padding-bottom: 90px !important;
+    }}
 </style>
 """, unsafe_allow_html=True)
 
@@ -386,14 +409,13 @@ else:
         else:
             st.info("Direct Local Inference Engine Active")
 
-    # Main App Header with Brand Logo Card, 3-Line Hamburger Menu & Platform Metadata
-    col_brand, col_title = st.columns([2.8, 5.2])
-    with col_brand:
-        st.markdown(get_brand_logo_card("header"), unsafe_allow_html=True)
-        # 3-Line Hamburger Menu Shortcut for Accessing Side Navbar Features
-        with st.popover("☰ 3-Line Menu (Features Navbar)", use_container_width=True, help="Click to open 3-line side navbar shortcut menu"):
+    # Main App Header with Top-Left 3-Line Hamburger Menu, Brand Logo & Metadata
+    col_menu, col_brand, col_title = st.columns([1.8, 2.7, 5.5])
+    with col_menu:
+        # 3-Line Hamburger Menu Shortcut Button on Top Left of Screen
+        with st.popover("☰ 3-Line Menu", use_container_width=True, help="Click to open 3-line side navbar shortcut menu"):
             st.markdown("### ☰ Feature Shortcuts Menu")
-            st.caption("Access side navbar features instantly:")
+            st.caption("Access all side navbar features instantly:")
             curr_feat_active = st.session_state.get("active_feature", PAGES[0])
             for idx, p_name in enumerate(PAGES):
                 s_name = SHORT_TITLES[p_name]
@@ -403,10 +425,13 @@ else:
                     f"{icon} {s_name}",
                     use_container_width=True,
                     type="primary" if is_act else "secondary",
-                    key=f"hamburger_menu_item_{idx}"
+                    key=f"top_left_hamburger_{idx}"
                 ):
                     st.session_state["active_feature"] = p_name
                     st.rerun()
+
+    with col_brand:
+        st.markdown(get_brand_logo_card("header"), unsafe_allow_html=True)
 
     with col_title:
         st.markdown('<h1 style="font-size: 2.3rem; font-weight: 800; color: #F8FAFC; margin: 0;">StratixIQ</h1>', unsafe_allow_html=True)
@@ -421,8 +446,14 @@ else:
     # PAGE 1: SINGLE CANDIDATE MATCHING ENGINE
     # ==========================================
     if active_page == PAGES[0]:
-        st.subheader("🎯 Match Engineering Requirements to Internal Talent Pool")
-        st.caption("Perform semantic vector retrieval, explainable AI feature weighting, and automated gap remediation.")
+        c_p0_head, c_p0_back = st.columns([7.6, 2.4])
+        with c_p0_head:
+            st.subheader("🎯 Match Engineering Requirements to Internal Talent Pool")
+            st.caption("Perform semantic vector retrieval, explainable AI feature weighting, and automated gap remediation.")
+        with c_p0_back:
+            if st.button("⬅️ Back to Main", key="back_btn_p0", type="secondary", use_container_width=True):
+                st.session_state["active_feature"] = PAGES[0]
+                st.rerun()
         
         st.markdown("**Sample Project Prompts:**")
         col_p1, col_p2, col_p3 = st.columns(3)
@@ -569,8 +600,14 @@ else:
     # PAGE 2: MULTI-AGENT COLLABORATIVE SQUAD BUILDER
     # ==========================================
     elif active_page == PAGES[1]:
-        st.subheader("🧩 Multi-Agent Cross-Functional Squad Assembler")
-        st.caption("Deconstruct complex project requirements into distinct technical role slots, query vector store, and assemble non-redundant team rosters.")
+        c_p1_head, c_p1_back = st.columns([7.6, 2.4])
+        with c_p1_head:
+            st.subheader("🧩 Multi-Agent Cross-Functional Squad Assembler")
+            st.caption("Deconstruct complex project requirements into distinct technical role slots, query vector store, and assemble non-redundant team rosters.")
+        with c_p1_back:
+            if st.button("⬅️ Back to Main", key="back_btn_p1", type="secondary", use_container_width=True):
+                st.session_state["active_feature"] = PAGES[0]
+                st.rerun()
         
         squad_scope = st.text_area(
             "Enter Full Project Scope for Team Assembly",
@@ -625,7 +662,13 @@ else:
     # PAGE 3: TALENT INGESTION & ROSTER HUB
     # ==========================================
     elif active_page == PAGES[2]:
-        st.subheader("📥 Ingest Resume & Explore Internal Talent Pool Roster Matrix")
+        c_p2_head, c_p2_back = st.columns([7.6, 2.4])
+        with c_p2_head:
+            st.subheader("📥 Ingest Resume & Explore Internal Talent Pool Roster Matrix")
+        with c_p2_back:
+            if st.button("⬅️ Back to Main", key="back_btn_p2", type="secondary", use_container_width=True):
+                st.session_state["active_feature"] = PAGES[0]
+                st.rerun()
         
         with st.form("t3_upload_form", clear_on_submit=True):
             c1, c2 = st.columns(2)
@@ -726,8 +769,14 @@ else:
     # PAGE 4: CANDIDATE CAREER GROWTH AUDIT
     # ==========================================
     elif active_page == PAGES[3]:
-        st.subheader("📈 Candidate Career Growth & Promotion Skill-Gap Auditor")
-        st.caption("Empower employees to audit their profile against target senior enterprise roles and generate 4-week promotion readiness roadmaps.")
+        c_p3_head, c_p3_back = st.columns([7.6, 2.4])
+        with c_p3_head:
+            st.subheader("📈 Candidate Career Growth & Promotion Skill-Gap Auditor")
+            st.caption("Empower employees to audit their profile against target senior enterprise roles and generate 4-week promotion readiness roadmaps.")
+        with c_p3_back:
+            if st.button("⬅️ Back to Main", key="back_btn_p3", type="secondary", use_container_width=True):
+                st.session_state["active_feature"] = PAGES[0]
+                st.rerun()
         
         from utils import INITIAL_TALENT_POOL
         all_cand_names = [c["name"] for c in INITIAL_TALENT_POOL]
@@ -788,8 +837,14 @@ else:
     # PAGE 5: HISTORICAL PROJECT PERFORMANCE FEEDBACK LOOP
     # ==========================================
     elif active_page == PAGES[4]:
-        st.subheader("⭐ Historical Project Performance & RL Feedback Loop")
-        st.caption("Submit manager ratings (1-5 stars) on completed sprint assignments to dynamically weight vector search score multipliers.")
+        c_p4_head, c_p4_back = st.columns([7.6, 2.4])
+        with c_p4_head:
+            st.subheader("⭐ Historical Project Performance & RL Feedback Loop")
+            st.caption("Submit manager ratings (1-5 stars) on completed sprint assignments to dynamically weight vector search score multipliers.")
+        with c_p4_back:
+            if st.button("⬅️ Back to Main", key="back_btn_p4", type="secondary", use_container_width=True):
+                st.session_state["active_feature"] = PAGES[0]
+                st.rerun()
         
         from utils import INITIAL_TALENT_POOL
         all_cand_ids = [c["id"] for c in INITIAL_TALENT_POOL]
@@ -842,7 +897,13 @@ else:
     # PAGE 6: ENTERPRISE KNOWLEDGE GRAPH & HR AI FAIRNESS AUDITOR
     # ==========================================
     elif active_page == PAGES[5]:
-        st.subheader("🛡️ Enterprise Knowledge Graph & HR AI Algorithmic Fairness Auditor")
+        c_p5_head, c_p5_back = st.columns([7.6, 2.4])
+        with c_p5_head:
+            st.subheader("🛡️ Enterprise Knowledge Graph & HR AI Algorithmic Fairness Auditor")
+        with c_p5_back:
+            if st.button("⬅️ Back to Main", key="back_btn_p5", type="secondary", use_container_width=True):
+                st.session_state["active_feature"] = PAGES[0]
+                st.rerun()
         
         kg_col, f_col = st.columns(2)
         
@@ -902,10 +963,10 @@ else:
             st.caption(f"Certification Note: {fair_data['certification_summary']}")
 
     # ==========================================
-    # PROFESSIONAL FOOTER
+    # SINGLE FIXED BOTTOM FOOTER
     # ==========================================
     footer_html = (
-        '<div style="text-align: center; padding: 2rem 0 1.5rem 0; border-top: 1px solid rgba(255, 255, 255, 0.1); margin-top: 3.5rem; color: #94A3B8; font-size: 0.88rem;">'
+        '<div class="fixed-footer-bar">'
         '© 2026 <strong>StratixIQ</strong>. Enterprise AI Talent Deployment & Skill-Matching Engine. All Rights Reserved.'
         '</div>'
     )
