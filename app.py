@@ -31,11 +31,30 @@ PAGES = [
     "🛡️ Knowledge Graph & HR AI Fairness Auditor"
 ]
 
+SHORT_TITLES = {
+    "🎯 Single Candidate Matching": "Single Match",
+    "🧩 Multi-Agent Squad Builder": "Squad Builder",
+    "📥 Talent Ingestion & Roster Hub": "Roster Hub",
+    "📈 Career Growth & Promotion Audit": "Career Audit",
+    "⭐ Performance RL Feedback Loop": "RL Feedback",
+    "🛡️ Knowledge Graph & HR AI Fairness Auditor": "AI Fairness"
+}
+
 if "current_page" not in st.session_state:
     st.session_state["current_page"] = PAGES[0]
 
 if "active_feature" not in st.session_state:
     st.session_state["active_feature"] = PAGES[0]
+
+if "side_nav_radio" not in st.session_state:
+    st.session_state["side_nav_radio"] = st.session_state["active_feature"]
+
+def switch_page(target_page):
+    st.session_state["active_feature"] = target_page
+    st.session_state["side_nav_radio"] = target_page
+
+def on_side_nav_change():
+    st.session_state["active_feature"] = st.session_state["side_nav_radio"]
 
 st.set_page_config(
     page_title="StratixIQ - AI Agile Talent Deployment Engine",
@@ -300,23 +319,35 @@ else:
     with st.sidebar:
         # Sidebar Header with Glowing Brand Logo Card
         st.markdown(get_brand_logo_card("sidebar"), unsafe_allow_html=True)
-        st.markdown("**Enterprise AI Talent Deployment Engine**")
+        st.markdown("<p style='text-align: center; color: #38BDF8; font-weight: 800; font-size: 0.75rem; letter-spacing: 2px; margin-top: -0.4rem; margin-bottom: 0.5rem; text-transform: uppercase;'>⚡ MOVABLE SIDE NAVBAR</p>", unsafe_allow_html=True)
         st.divider()
 
-        # Side Navbar Feature Selector
-        st.subheader("📌 Platform Navigation")
-        curr_feat = st.session_state.get("active_feature", PAGES[0])
-        curr_idx = PAGES.index(curr_feat) if curr_feat in PAGES else 0
+        # Side Navbar Feature Selector Buttons
+        st.subheader("📌 Feature Shortcuts")
+        st.caption("Click any item below to switch feature view:")
 
-        sb_feature = st.selectbox(
-            "Select Workspace Feature",
+        curr_feat = st.session_state.get("active_feature", PAGES[0])
+
+        for idx, page_name in enumerate(PAGES):
+            short = SHORT_TITLES[page_name]
+            icon = page_name.split()[0]
+            is_active = (curr_feat == page_name)
+            
+            btn_type = "primary" if is_active else "secondary"
+            if st.button(f"{icon} {short}", key=f"side_nav_btn_{idx}", type=btn_type, use_container_width=True):
+                switch_page(page_name)
+                st.rerun()
+
+        st.divider()
+
+        curr_idx = PAGES.index(curr_feat) if curr_feat in PAGES else 0
+        st.selectbox(
+            "Quick Feature Dropdown",
             options=PAGES,
             index=curr_idx,
-            key="side_navbar_selectbox"
+            key="side_nav_radio",
+            on_change=on_side_nav_change
         )
-        if sb_feature != st.session_state.get("active_feature"):
-            st.session_state["active_feature"] = sb_feature
-            st.rerun()
 
         st.divider()
 
@@ -374,33 +405,22 @@ else:
 
     # Interactive Feature Navbar Shortcut Bar
     st.markdown("#### ⚡ Workspace Navbar Shortcuts (Click to switch feature view):")
-    n1, n2, n3, n4, n5, n6 = st.columns(6)
+    nav_cols = st.columns(6)
 
     active_feat = st.session_state.get("active_feature", PAGES[0])
 
-    if n1.button("🎯 Single Match", use_container_width=True, type="primary" if active_feat == PAGES[0] else "secondary", key="nav_shortcut_1"):
-        st.session_state["active_feature"] = PAGES[0]
-        st.rerun()
-
-    if n2.button("🧩 Squad Builder", use_container_width=True, type="primary" if active_feat == PAGES[1] else "secondary", key="nav_shortcut_2"):
-        st.session_state["active_feature"] = PAGES[1]
-        st.rerun()
-
-    if n3.button("📥 Roster Hub", use_container_width=True, type="primary" if active_feat == PAGES[2] else "secondary", key="nav_shortcut_3"):
-        st.session_state["active_feature"] = PAGES[2]
-        st.rerun()
-
-    if n4.button("📈 Career Audit", use_container_width=True, type="primary" if active_feat == PAGES[3] else "secondary", key="nav_shortcut_4"):
-        st.session_state["active_feature"] = PAGES[3]
-        st.rerun()
-
-    if n5.button("⭐ RL Feedback", use_container_width=True, type="primary" if active_feat == PAGES[4] else "secondary", key="nav_shortcut_5"):
-        st.session_state["active_feature"] = PAGES[4]
-        st.rerun()
-
-    if n6.button("🛡️ AI Fairness", use_container_width=True, type="primary" if active_feat == PAGES[5] else "secondary", key="nav_shortcut_6"):
-        st.session_state["active_feature"] = PAGES[5]
-        st.rerun()
+    for idx, page_name in enumerate(PAGES):
+        short_name = SHORT_TITLES[page_name]
+        icon = page_name.split()[0]
+        is_active = (active_feat == page_name)
+        if nav_cols[idx].button(
+            f"{icon} {short_name}",
+            use_container_width=True,
+            type="primary" if is_active else "secondary",
+            key=f"top_nav_shortcut_{idx}"
+        ):
+            switch_page(page_name)
+            st.rerun()
 
     st.divider()
 
@@ -416,17 +436,18 @@ else:
         st.markdown("**Sample Project Prompts:**")
         col_p1, col_p2, col_p3 = st.columns(3)
         
-        prompt_input = ""
-        if col_p1.button("Prompt #1: FastAPI + RAG Vector Engineer"):
-            prompt_input = "Need a Senior Full-Stack Engineer with Python, FastAPI, ChromaDB vector store, and React for immediate sprint deployment."
-        if col_p2.button("Prompt #2: ML Architect & LLM Fine-Tuning"):
-            prompt_input = "Looking for a Machine Learning Architect experienced in PyTorch, LangChain LLM fine-tuning, and vector database indexing."
-        if col_p3.button("Prompt #3: Cloud DevOps & AWS Specialist"):
-            prompt_input = "Require a Cloud DevOps Engineer with AWS CDK, Kubernetes, Docker, and CI/CD automation background."
+        if col_p1.button("Prompt #1: FastAPI + RAG Vector Engineer", key="p1_prompt_btn"):
+            st.session_state["t1_proj_desc"] = "Need a Senior Full-Stack Engineer with Python, FastAPI, ChromaDB vector store, and React for immediate sprint deployment."
+            st.rerun()
+        if col_p2.button("Prompt #2: ML Architect & LLM Fine-Tuning", key="p2_prompt_btn"):
+            st.session_state["t1_proj_desc"] = "Looking for a Machine Learning Architect experienced in PyTorch, LangChain LLM fine-tuning, and vector database indexing."
+            st.rerun()
+        if col_p3.button("Prompt #3: Cloud DevOps & AWS Specialist", key="p3_prompt_btn"):
+            st.session_state["t1_proj_desc"] = "Require a Cloud DevOps Engineer with AWS CDK, Kubernetes, Docker, and CI/CD automation background."
+            st.rerun()
 
         project_desc = st.text_area(
             "Enter Project Technical Requirements / Scope Description",
-            value=prompt_input if prompt_input else "",
             placeholder="Paste engineering project description here...",
             height=110,
             key="t1_proj_desc"
@@ -556,7 +577,7 @@ else:
     # ==========================================
     # PAGE 2: MULTI-AGENT COLLABORATIVE SQUAD BUILDER
     # ==========================================
-    elif active_page == "🧩 Multi-Agent Squad Builder":
+    elif active_page == PAGES[1]:
         st.subheader("🧩 Multi-Agent Cross-Functional Squad Assembler")
         st.caption("Deconstruct complex project requirements into distinct technical role slots, query vector store, and assemble non-redundant team rosters.")
         
@@ -612,7 +633,7 @@ else:
     # ==========================================
     # PAGE 3: TALENT INGESTION & ROSTER HUB
     # ==========================================
-    elif active_page == "📥 Talent Ingestion & Roster Hub":
+    elif active_page == PAGES[2]:
         st.subheader("📥 Ingest Resume & Explore Internal Talent Pool Roster Matrix")
         
         with st.form("t3_upload_form", clear_on_submit=True):
@@ -713,7 +734,7 @@ else:
     # ==========================================
     # PAGE 4: CANDIDATE CAREER GROWTH AUDIT
     # ==========================================
-    elif active_page == "📈 Career Growth & Promotion Audit":
+    elif active_page == PAGES[3]:
         st.subheader("📈 Candidate Career Growth & Promotion Skill-Gap Auditor")
         st.caption("Empower employees to audit their profile against target senior enterprise roles and generate 4-week promotion readiness roadmaps.")
         
@@ -775,7 +796,7 @@ else:
     # ==========================================
     # PAGE 5: HISTORICAL PROJECT PERFORMANCE FEEDBACK LOOP
     # ==========================================
-    elif active_page == "⭐ Performance RL Feedback Loop":
+    elif active_page == PAGES[4]:
         st.subheader("⭐ Historical Project Performance & RL Feedback Loop")
         st.caption("Submit manager ratings (1-5 stars) on completed sprint assignments to dynamically weight vector search score multipliers.")
         
@@ -829,7 +850,7 @@ else:
     # ==========================================
     # PAGE 6: ENTERPRISE KNOWLEDGE GRAPH & HR AI FAIRNESS AUDITOR
     # ==========================================
-    elif active_page == "🛡️ Knowledge Graph & HR AI Fairness Auditor":
+    elif active_page == PAGES[5]:
         st.subheader("🛡️ Enterprise Knowledge Graph & HR AI Algorithmic Fairness Auditor")
         
         kg_col, f_col = st.columns(2)
