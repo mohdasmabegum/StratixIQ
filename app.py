@@ -36,6 +36,7 @@ hide_sidebar_css = "" if st.session_state["splash_done"] else "[data-testid='stS
 # CSS Custom Theme & Animation Styling
 st.markdown(f"""
 <style>
+    /* Hide Streamlit Header, Toolbar, Footer & Manage App Button */
     #MainMenu {{visibility: hidden;}}
     header {{visibility: hidden !important;}}
     footer {{visibility: hidden !important;}}
@@ -46,8 +47,24 @@ st.markdown(f"""
     [data-testid="stManageAppButton"] {{display: none !important;}}
     .stManageAppButton {{display: none !important;}}
     button[aria-label="Manage app"] {{display: none !important;}}
+    button[title="Manage app"] {{display: none !important;}}
     .stDeployButton {{display: none !important;}}
     button[title="View code"] {{display: none !important;}}
+
+    /* Hide bottom right Manage App viewer button */
+    [data-testid="stAppViewerFooter"],
+    [data-testid="stReportViewerFooter"],
+    .stAppViewerFooter,
+    .stReportViewerFooter,
+    div[class*="stAppViewerFooter"],
+    div[class*="stReportViewerFooter"],
+    div[class*="viewerFooter"],
+    #stAppViewerFooter {{
+        display: none !important;
+        visibility: hidden !important;
+        opacity: 0 !important;
+        pointer-events: none !important;
+    }}
 
     {hide_sidebar_css}
 
@@ -340,8 +357,7 @@ else:
                         elif "Part-time" in match["bandwidth_status"]:
                             status_class = "badge-part"
                             
-                        with st.container():
-                            st.markdown('<div class="metric-card">', unsafe_allow_html=True)
+                        with st.container(border=True):
                             c1, c2 = st.columns([3.5, 1.2])
                             with c1:
                                 st.markdown(f"### #{idx+1} {match['name']} - *{match['role']}*")
@@ -387,7 +403,6 @@ else:
                                 st.session_state["deploy_modal_candidate"] = match
                                 st.toast(f"🎉 Assigned {match['name']} to sprint deployment!", icon="🚀")
                                 st.rerun()
-                            st.markdown('</div>', unsafe_allow_html=True)
             else:
                 st.error("Please enter a project requirement description to run semantic matching.")
 
@@ -442,16 +457,29 @@ else:
         for idx, cand in enumerate(roster):
             col = cols[idx % 2]
             with col:
-                status_class = "badge-avail"
+                status_color = "#34D399"
+                status_bg = "rgba(16, 185, 129, 0.2)"
                 if "Assigned" in cand["bandwidth_status"]:
-                    status_class = "badge-assigned"
+                    status_color = "#FBBF24"
+                    status_bg = "rgba(245, 158, 11, 0.2)"
                 elif "Part-time" in cand["bandwidth_status"]:
-                    status_class = "badge-part"
+                    status_color = "#C084FC"
+                    status_bg = "rgba(139, 92, 246, 0.2)"
                     
-                st.markdown('<div class="metric-card">', unsafe_allow_html=True)
-                st.markdown(f"### {cand['name']}")
-                st.markdown(f"**{cand['role']}** • {cand.get('years_experience', 5)} Yrs Experience")
-                st.markdown(f'<span class="{status_class}">{cand["bandwidth_status"]}</span>', unsafe_allow_html=True)
-                st.write(cand.get("bio", "Indexed candidate profile."))
-                st.markdown(f"**Skills:** {', '.join(cand['skills'])}")
-                st.markdown('</div>', unsafe_allow_html=True)
+                skills_tags = "".join([f'<span style="background-color: rgba(59, 130, 246, 0.15); color: #60A5FA; padding: 0.2rem 0.55rem; border-radius: 0.375rem; font-size: 0.78rem; font-weight: 600; margin-right: 0.35rem; margin-bottom: 0.35rem; display: inline-block;">{s}</span>' for s in cand['skills']])
+                
+                card_html = f"""
+                <div class="metric-card" style="background-color: rgba(30, 41, 59, 0.75); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 0.85rem; padding: 1.25rem; margin-bottom: 1rem; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.4rem;">
+                        <h3 style="margin: 0; font-size: 1.35rem; font-weight: 800; color: #F8FAFC;">{cand['name']}</h3>
+                        <span style="background-color: {status_bg}; color: {status_color}; padding: 0.2rem 0.6rem; border-radius: 0.375rem; font-size: 0.8rem; font-weight: 600;">{cand['bandwidth_status']}</span>
+                    </div>
+                    <p style="margin: 0 0 0.6rem 0; font-size: 0.95rem; color: #94A3B8; font-weight: 600;">{cand['role']} • {cand.get('years_experience', 5)} Yrs Experience</p>
+                    <p style="margin: 0 0 0.85rem 0; font-size: 0.9rem; color: #CBD5E1; line-height: 1.45;">{cand.get("bio", "Indexed candidate profile.")}</p>
+                    <div style="border-top: 1px solid rgba(255, 255, 255, 0.08); padding-top: 0.65rem;">
+                        <div style="font-size: 0.8rem; font-weight: 700; color: #94A3B8; margin-bottom: 0.35rem;">Verified Skills & Tech Stack:</div>
+                        <div>{skills_tags}</div>
+                    </div>
+                </div>
+                """
+                st.markdown(card_html, unsafe_allow_html=True)
