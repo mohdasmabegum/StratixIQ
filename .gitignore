@@ -41,5 +41,7 @@ venv/
 .venv/
 .chroma/
 *.chroma
+chroma_db_store/
+.user_uploaded/
 doc_content.txt
 ~$*

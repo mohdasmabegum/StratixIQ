@@ -118,12 +118,8 @@ export default function StratixIQDashboard() {
       {/* Top Header with StratixIQ Brand Logo */}
       <header className="glass-panel p-5 mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div className="flex items-center space-x-4">
-          <div className="p-1.5 bg-slate-900/90 border border-slate-700/80 rounded-xl shadow-md flex items-center justify-center">
-            <img 
-              src="/logo.png" 
-              alt="StratixIQ Logo" 
-              className="h-12 w-auto object-contain rounded-lg"
-            />
+          <div className="p-2.5 bg-blue-600/20 border border-blue-500/30 rounded-xl shadow-md flex items-center justify-center">
+            <BrainCircuit className="w-6 h-6 text-blue-400" />
           </div>
           <div>
             <div className="flex items-center space-x-2">
@@ -270,7 +266,7 @@ export default function StratixIQDashboard() {
                   </>
                 ) : (
                   <>
-                    <img src="/logo.png" alt="Logo" className="w-5 h-5 rounded object-contain" />
+                    <BrainCircuit className="w-4 h-4" />
                     <span>Run Semantic Talent Search</span>
                   </>
                 )}
@@ -309,7 +305,7 @@ export default function StratixIQDashboard() {
                     >
                       {isTopMatch && (
                         <div className="absolute top-0 right-0 bg-blue-600 text-white text-[10px] uppercase font-bold px-3 py-1 rounded-bl-lg shadow-md flex items-center space-x-1">
-                          <img src="/logo.png" alt="Logo" className="w-3 h-3 rounded-full inline" />
+                          <Sparkles className="w-3 h-3 text-amber-300 inline" />
                           <span>Top Match</span>
                         </div>
                       )}
@@ -580,7 +576,7 @@ export default function StratixIQDashboard() {
 
       {/* Footer with Logo */}
       <footer className="mt-auto pt-8 pb-4 text-center text-xs text-slate-500 border-t border-slate-800/60 mt-12 flex flex-col items-center justify-center space-y-2">
-        <img src="/logo.png" alt="StratixIQ Logo" className="h-6 w-auto object-contain opacity-70" />
+        <span className="font-bold text-sm text-slate-300 tracking-wide">StratixIQ</span>
         <div>StratixIQ AI Agile Staffing Engine • Enterprise RAG & Vector Matching Engine</div>
       </footer>
     </div>
