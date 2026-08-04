@@ -19,12 +19,12 @@ if "llm_provider" not in st.session_state:
     st.session_state["llm_provider"] = "hybrid_local"
 
 if "app_theme" not in st.session_state:
-    st.session_state["app_theme"] = "Dark Glassmorphism"
+    st.session_state["app_theme"] = "System Default"
 
 st.set_page_config(
     page_title="StratixIQ - AI Agile Talent Deployment Engine",
     layout="wide",
-    initial_sidebar_state="expanded" if st.session_state.get("splash_done") else "collapsed"
+    initial_sidebar_state="expanded"
 )
 
 # Function to generate reusable brand logo card component
@@ -51,30 +51,75 @@ def get_brand_logo_card(variant="splash"):
         </div>
         """
 
-hide_sidebar_css = "" if st.session_state["splash_done"] else "[data-testid='stSidebar'] {display: none !important;}"
+# Theme Custom CSS
+current_theme = st.session_state.get("app_theme", "System Default")
+if current_theme == "Light":
+    theme_css = """
+    body, .stApp {
+        background-color: #F8FAFC !important;
+        color: #0F172A !important;
+    }
+    .metric-card {
+        background-color: #FFFFFF !important;
+        border: 1px solid #E2E8F0 !important;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05) !important;
+        color: #0F172A !important;
+    }
+    .metric-card h3 { color: #0F172A !important; }
+    .metric-card p { color: #475569 !important; }
+    .metric-card strong { color: #2563EB !important; }
+    """
+elif current_theme == "Dark":
+    theme_css = """
+    body, .stApp {
+        background-color: #0F172A !important;
+        color: #F8FAFC !important;
+    }
+    .metric-card {
+        background-color: rgba(30, 41, 59, 0.75) !important;
+        border: 1px solid rgba(255, 255, 255, 0.12) !important;
+        box-shadow: 0 12px 30px rgba(59, 130, 246, 0.2) !important;
+        color: #F8FAFC !important;
+    }
+    .metric-card h3 { color: #F8FAFC !important; }
+    .metric-card p { color: #94A3B8 !important; }
+    .metric-card strong { color: #60A5FA !important; }
+    """
+else: # System Default
+    theme_css = """
+    @media (prefers-color-scheme: light) {
+        body, .stApp {
+            background-color: #F8FAFC !important;
+            color: #0F172A !important;
+        }
+        .metric-card {
+            background-color: #FFFFFF !important;
+            border: 1px solid #E2E8F0 !important;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05) !important;
+            color: #0F172A !important;
+        }
+        .metric-card h3 { color: #0F172A !important; }
+        .metric-card p { color: #475569 !important; }
+        .metric-card strong { color: #2563EB !important; }
+    }
+    @media (prefers-color-scheme: dark) {
+        body, .stApp {
+            background-color: #0F172A !important;
+            color: #F8FAFC !important;
+        }
+        .metric-card {
+            background-color: rgba(30, 41, 59, 0.75) !important;
+            border: 1px solid rgba(255, 255, 255, 0.12) !important;
+            box-shadow: 0 12px 30px rgba(59, 130, 246, 0.2) !important;
+            color: #F8FAFC !important;
+        }
+        .metric-card h3 { color: #F8FAFC !important; }
+        .metric-card p { color: #94A3B8 !important; }
+        .metric-card strong { color: #60A5FA !important; }
+    }
+    """
 
-# Dynamic Theme Colors
-current_theme = st.session_state.get("app_theme", "Dark Glassmorphism")
-if current_theme == "Light Enterprise":
-    card_bg_color = "#FFFFFF"
-    card_border_color = "rgba(226, 232, 240, 0.9)"
-    text_main_color = "#0F172A"
-    text_sub_color = "#475569"
-    card_shadow = "0 10px 25px rgba(0, 0, 0, 0.06)"
-elif current_theme == "Cyber Neon Glow":
-    card_bg_color = "rgba(17, 24, 39, 0.85)"
-    card_border_color = "rgba(56, 189, 248, 0.4)"
-    text_main_color = "#F9FAFB"
-    text_sub_color = "#38BDF8"
-    card_shadow = "0 12px 30px rgba(56, 189, 248, 0.25)"
-else: # Dark Glassmorphism
-    card_bg_color = "rgba(30, 41, 59, 0.75)"
-    card_border_color = "rgba(255, 255, 255, 0.12)"
-    text_main_color = "#F8FAFC"
-    text_sub_color = "#94A3B8"
-    card_shadow = "0 12px 30px rgba(59, 130, 246, 0.2)"
-
-# CSS Custom Theme & Animation Styling
+# CSS Custom Styling
 st.markdown(f"""
 <style>
     /* Hide Streamlit Header, Toolbar, Footer & Manage App Button */
@@ -107,7 +152,7 @@ st.markdown(f"""
         pointer-events: none !important;
     }}
 
-    {hide_sidebar_css}
+    {theme_css}
 
     .stButton button {{
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
@@ -129,12 +174,9 @@ st.markdown(f"""
     }}
 
     .metric-card {{
-        background-color: {card_bg_color} !important;
-        border: 1px solid {card_border_color} !important;
         border-radius: 0.85rem;
         padding: 1.25rem;
         margin-bottom: 1rem;
-        box-shadow: {card_shadow} !important;
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }}
     .metric-card:hover {{
@@ -190,16 +232,21 @@ st.markdown(f"""
 if not st.session_state["splash_done"]:
     splash_card_html = get_brand_logo_card("splash")
     splash_html = f"""
-    <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding-top: 3.5rem; padding-bottom: 2rem; width: 100%;">
+    <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding-top: 3.5rem; padding-bottom: 1.5rem; width: 100%;">
         {splash_card_html}
-        <h3 style="font-size: 1.5rem; font-weight: 700; color: #F1F5F9; margin: 1.5rem 0 0.75rem 0;">Agile Talent Deployment & Skill-Matching Engine</h3>
-        <p style="font-size: 1.05rem; color: #94A3B8; max-width: 640px; margin: 0 auto; line-height: 1.5;">Enterprise AI RAG Vector Pipeline • Explainable Match Auditing • Automated Gap Remediation</p>
+        <h3 style="font-size: 1.6rem; font-weight: 700; color: #F1F5F9; margin: 1.75rem 0 0.75rem 0;">Agile Talent Deployment & Skill-Matching Engine</h3>
+        <p style="font-size: 1.05rem; color: #94A3B8; max-width: 640px; margin: 0 auto 1.5rem auto; line-height: 1.5;">Enterprise AI RAG Vector Pipeline • Explainable Match Auditing • Automated Gap Remediation</p>
     </div>
     """
-    
     st.markdown(splash_html, unsafe_allow_html=True)
 
-    time.sleep(2.5)
+    c_s1, c_s2, c_s3 = st.columns([2, 2.5, 2])
+    with c_s2:
+        if st.button("🚀 Enter StratixIQ Workspace", type="primary", use_container_width=True):
+            st.session_state["splash_done"] = True
+            st.rerun()
+
+    time.sleep(2.0)
     st.session_state["splash_done"] = True
     st.rerun()
 
@@ -227,11 +274,11 @@ else:
         st.divider()
 
         # UI Design System & Theme Selector
-        st.subheader("🎨 UI Design System & Theme")
+        st.subheader("🎨 Interface Theme Mode")
         theme_option = st.selectbox(
             "Select Interface Theme",
-            options=["Dark Glassmorphism", "Light Enterprise", "Cyber Neon Glow"],
-            index=["Dark Glassmorphism", "Light Enterprise", "Cyber Neon Glow"].index(st.session_state.get("app_theme", "Dark Glassmorphism"))
+            options=["System Default", "Dark", "Light"],
+            index=["System Default", "Dark", "Light"].index(st.session_state.get("app_theme", "System Default"))
         )
         if theme_option != st.session_state.get("app_theme"):
             st.session_state["app_theme"] = theme_option
