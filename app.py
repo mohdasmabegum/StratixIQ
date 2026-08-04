@@ -293,14 +293,7 @@ else:
     except Exception:
         backend_online = False
 
-    # Sidebar Controls, Navigation Menu & Theme Selector
-    with st.sidebar:
-        # Sidebar Header with Glowing Brand Logo Card
-        st.markdown(get_brand_logo_card("sidebar"), unsafe_allow_html=True)
-        st.markdown("**Enterprise AI Talent Deployment Engine**")
-        st.divider()
-
-    # Sidebar Controls, Navigation Menu & Theme Selector
+    # Sidebar Controls, Feature Navigation Menu & Theme Selector
     with st.sidebar:
         # Sidebar Header with Glowing Brand Logo Card
         st.markdown(get_brand_logo_card("sidebar"), unsafe_allow_html=True)
@@ -308,21 +301,19 @@ else:
         st.divider()
 
         # Sidebar Feature Navigation Menu
-        st.subheader("📌 Platform Navigation")
-        curr_page = st.session_state.get("current_page", PAGES[0])
-        curr_idx = PAGES.index(curr_page) if curr_page in PAGES else 0
-
-        nav_selection = st.radio(
-            "Select Feature Module",
-            options=PAGES,
-            index=curr_idx,
-            key="sidebar_radio_choice"
+        st.subheader("📌 Feature Navigation")
+        active_page = st.radio(
+            "Select Workspace Feature",
+            options=[
+                "🎯 Single Candidate Matching",
+                "🧩 Multi-Agent Squad Builder",
+                "📥 Talent Ingestion & Roster Hub",
+                "📈 Career Growth & Promotion Audit",
+                "⭐ Performance RL Feedback Loop",
+                "🛡️ Knowledge Graph & HR AI Fairness Auditor"
+            ],
+            key="app_main_navigation"
         )
-
-        if nav_selection != st.session_state["current_page"]:
-            st.session_state["current_page"] = nav_selection
-            st.rerun()
-
         st.divider()
 
         # UI Design System & Theme Selector
@@ -366,7 +357,7 @@ else:
         else:
             st.info("Direct Local Inference Engine Active")
 
-    # Main App Header with Brand Logo Card & Info
+    # Main App Header with Brand Logo Card & Platform Metadata
     col_brand, col_title = st.columns([2.5, 5.5])
     with col_brand:
         st.markdown(get_brand_logo_card("header"), unsafe_allow_html=True)
@@ -377,42 +368,10 @@ else:
 
     st.divider()
 
-    # Quick Sidebar Navigation Bar (Shortcut Bar)
-    st.caption("📌 **Quick Navigation Shortcuts** (Click any button to open dedicated feature page):")
-    n_c1, n_c2, n_c3, n_c4, n_c5, n_c6 = st.columns(6)
-
-    if n_c1.button("🎯 Single Match", use_container_width=True, key="shortcut_t1"):
-        st.session_state["current_page"] = PAGES[0]
-        st.rerun()
-
-    if n_c2.button("🧩 Squad Builder", use_container_width=True, key="shortcut_t2"):
-        st.session_state["current_page"] = PAGES[1]
-        st.rerun()
-
-    if n_c3.button("📥 Roster Hub", use_container_width=True, key="shortcut_t3"):
-        st.session_state["current_page"] = PAGES[2]
-        st.rerun()
-
-    if n_c4.button("📈 Career Audit", use_container_width=True, key="shortcut_t4"):
-        st.session_state["current_page"] = PAGES[3]
-        st.rerun()
-
-    if n_c5.button("⭐ RL Feedback", use_container_width=True, key="shortcut_t5"):
-        st.session_state["current_page"] = PAGES[4]
-        st.rerun()
-
-    if n_c6.button("🛡️ AI Fairness", use_container_width=True, key="shortcut_t6"):
-        st.session_state["current_page"] = PAGES[5]
-        st.rerun()
-
-    st.divider()
-
-    active_page = st.session_state.get("current_page", PAGES[0])
-
     # ==========================================
-    # MODULE 1: SINGLE CANDIDATE MATCHING ENGINE
+    # PAGE 1: SINGLE CANDIDATE MATCHING ENGINE
     # ==========================================
-    if active_page == PAGES[0]:
+    if active_page == "🎯 Single Candidate Matching":
         st.subheader("🎯 Match Engineering Requirements to Internal Talent Pool")
         st.caption("Perform semantic vector retrieval, explainable AI feature weighting, and automated gap remediation.")
         
@@ -557,9 +516,9 @@ else:
                 st.rerun()
 
     # ==========================================
-    # MODULE 2: MULTI-AGENT COLLABORATIVE SQUAD BUILDER
+    # PAGE 2: MULTI-AGENT COLLABORATIVE SQUAD BUILDER
     # ==========================================
-    elif active_page == PAGES[1]:
+    elif active_page == "🧩 Multi-Agent Squad Builder":
         st.subheader("🧩 Multi-Agent Cross-Functional Squad Assembler")
         st.caption("Deconstruct complex project requirements into distinct technical role slots, query vector store, and assemble non-redundant team rosters.")
         
@@ -613,9 +572,9 @@ else:
                     st.success(f"✅ **Squad Deployment Activated**: All {squad_data['squad_size']} team members notified!")
 
     # ==========================================
-    # MODULE 3: TALENT INGESTION & ROSTER HUB
+    # PAGE 3: TALENT INGESTION & ROSTER HUB
     # ==========================================
-    elif active_page == PAGES[2]:
+    elif active_page == "📥 Talent Ingestion & Roster Hub":
         st.subheader("📥 Ingest Resume & Explore Internal Talent Pool Roster Matrix")
         
         with st.form("t3_upload_form", clear_on_submit=True):
@@ -714,9 +673,9 @@ else:
                 st.markdown(card_html, unsafe_allow_html=True)
 
     # ==========================================
-    # MODULE 4: CANDIDATE CAREER GROWTH AUDIT
+    # PAGE 4: CANDIDATE CAREER GROWTH AUDIT
     # ==========================================
-    elif active_page == PAGES[3]:
+    elif active_page == "📈 Career Growth & Promotion Audit":
         st.subheader("📈 Candidate Career Growth & Promotion Skill-Gap Auditor")
         st.caption("Empower employees to audit their profile against target senior enterprise roles and generate 4-week promotion readiness roadmaps.")
         
@@ -776,9 +735,9 @@ else:
                     st.markdown(f"**{week_k.replace('_', ' ').title()}:** {step}")
 
     # ==========================================
-    # MODULE 5: HISTORICAL PROJECT PERFORMANCE FEEDBACK LOOP
+    # PAGE 5: HISTORICAL PROJECT PERFORMANCE FEEDBACK LOOP
     # ==========================================
-    elif active_page == PAGES[4]:
+    elif active_page == "⭐ Performance RL Feedback Loop":
         st.subheader("⭐ Historical Project Performance & RL Feedback Loop")
         st.caption("Submit manager ratings (1-5 stars) on completed sprint assignments to dynamically weight vector search score multipliers.")
         
@@ -830,9 +789,9 @@ else:
                 st.caption(f"Feedback: \"{rec['feedback_text']}\"")
 
     # ==========================================
-    # MODULE 6: ENTERPRISE KNOWLEDGE GRAPH & HR AI FAIRNESS AUDITOR
+    # PAGE 6: ENTERPRISE KNOWLEDGE GRAPH & HR AI FAIRNESS AUDITOR
     # ==========================================
-    elif active_page == PAGES[5]:
+    elif active_page == "🛡️ Knowledge Graph & HR AI Fairness Auditor":
         st.subheader("🛡️ Enterprise Knowledge Graph & HR AI Algorithmic Fairness Auditor")
         
         kg_col, f_col = st.columns(2)
