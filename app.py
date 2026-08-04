@@ -30,26 +30,35 @@ st.set_page_config(
 # Function to generate reusable brand logo card component
 def get_brand_logo_card(variant="splash"):
     if variant == "splash":
-        return """
-        <div style="background: linear-gradient(135deg, rgba(30, 41, 59, 0.95), rgba(15, 23, 42, 0.95)); padding: 2.2rem 4rem; border-radius: 2.2rem; border: 1px solid rgba(255, 255, 255, 0.14); box-shadow: 0 20px 50px rgba(59, 130, 246, 0.35); display: inline-block; text-align: center;">
-            <h1 style="font-size: 4rem; font-weight: 900; letter-spacing: -0.03em; background: linear-gradient(90deg, #60A5FA, #C084FC); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin: 0; line-height: 1.1; font-family: 'Inter', sans-serif;">StratixIQ</h1>
-            <p style="font-size: 0.9rem; font-weight: 800; color: #38BDF8; letter-spacing: 0.25em; margin-top: 0.6rem; text-transform: uppercase; margin-bottom: 0;">STRATEGY • INSIGHT • IMPACT</p>
-        </div>
-        """
+        return (
+            '<div style="background: linear-gradient(135deg, rgba(30, 41, 59, 0.95), rgba(15, 23, 42, 0.95)); '
+            'padding: 2.2rem 4rem; border-radius: 2.2rem; border: 1px solid rgba(255, 255, 255, 0.14); '
+            'box-shadow: 0 20px 50px rgba(59, 130, 246, 0.35); display: inline-block; text-align: center;">'
+            '<h1 style="font-size: 4rem; font-weight: 900; letter-spacing: -0.03em; background: linear-gradient(90deg, #60A5FA, #C084FC); '
+            '-webkit-background-clip: text; -webkit-text-fill-color: transparent; margin: 0; line-height: 1.1; font-family: sans-serif;">StratixIQ</h1>'
+            '<p style="font-size: 0.9rem; font-weight: 800; color: #38BDF8; letter-spacing: 0.25em; margin-top: 0.6rem; text-transform: uppercase; margin-bottom: 0;">STRATEGY • INSIGHT • IMPACT</p>'
+            '</div>'
+        )
     elif variant == "header":
-        return """
-        <div style="background: linear-gradient(135deg, rgba(30, 41, 59, 0.85), rgba(15, 23, 42, 0.85)); padding: 1.1rem 2.2rem; border-radius: 1.5rem; border: 1px solid rgba(255, 255, 255, 0.12); box-shadow: 0 12px 30px rgba(59, 130, 246, 0.25); display: inline-block;">
-            <h2 style="font-size: 2.2rem; font-weight: 900; letter-spacing: -0.03em; background: linear-gradient(90deg, #60A5FA, #C084FC); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin: 0; line-height: 1.1; font-family: 'Inter', sans-serif;">StratixIQ</h2>
-            <p style="font-size: 0.7rem; font-weight: 800; color: #38BDF8; letter-spacing: 0.22em; margin-top: 0.3rem; text-transform: uppercase; margin-bottom: 0;">STRATEGY • INSIGHT • IMPACT</p>
-        </div>
-        """
+        return (
+            '<div style="background: linear-gradient(135deg, rgba(30, 41, 59, 0.85), rgba(15, 23, 42, 0.85)); '
+            'padding: 1.1rem 2.2rem; border-radius: 1.5rem; border: 1px solid rgba(255, 255, 255, 0.12); '
+            'box-shadow: 0 12px 30px rgba(59, 130, 246, 0.25); display: inline-block;">'
+            '<h2 style="font-size: 2.2rem; font-weight: 900; letter-spacing: -0.03em; background: linear-gradient(90deg, #60A5FA, #C084FC); '
+            '-webkit-background-clip: text; -webkit-text-fill-color: transparent; margin: 0; line-height: 1.1; font-family: sans-serif;">StratixIQ</h2>'
+            '<p style="font-size: 0.7rem; font-weight: 800; color: #38BDF8; letter-spacing: 0.22em; margin-top: 0.3rem; text-transform: uppercase; margin-bottom: 0;">STRATEGY • INSIGHT • IMPACT</p>'
+            '</div>'
+        )
     else: # sidebar
-        return """
-        <div style="background: linear-gradient(135deg, rgba(30, 41, 59, 0.9), rgba(15, 23, 42, 0.9)); padding: 1rem 1.25rem; border-radius: 1.25rem; border: 1px solid rgba(255, 255, 255, 0.14); box-shadow: 0 8px 25px rgba(59, 130, 246, 0.25); text-align: center; margin-bottom: 1.25rem;">
-            <h3 style="font-size: 1.75rem; font-weight: 900; letter-spacing: -0.03em; background: linear-gradient(90deg, #60A5FA, #C084FC); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin: 0; line-height: 1.1; font-family: 'Inter', sans-serif;">StratixIQ</h3>
-            <p style="font-size: 0.62rem; font-weight: 800; color: #38BDF8; letter-spacing: 0.2em; margin-top: 0.3rem; text-transform: uppercase; margin-bottom: 0;">STRATEGY • INSIGHT • IMPACT</p>
-        </div>
-        """
+        return (
+            '<div style="background: linear-gradient(135deg, rgba(30, 41, 59, 0.9), rgba(15, 23, 42, 0.9)); '
+            'padding: 1rem 1.25rem; border-radius: 1.25rem; border: 1px solid rgba(255, 255, 255, 0.14); '
+            'box-shadow: 0 8px 25px rgba(59, 130, 246, 0.25); text-align: center; margin-bottom: 1.25rem;">'
+            '<h3 style="font-size: 1.75rem; font-weight: 900; letter-spacing: -0.03em; background: linear-gradient(90deg, #60A5FA, #C084FC); '
+            '-webkit-background-clip: text; -webkit-text-fill-color: transparent; margin: 0; line-height: 1.1; font-family: sans-serif;">StratixIQ</h3>'
+            '<p style="font-size: 0.62rem; font-weight: 800; color: #38BDF8; letter-spacing: 0.2em; margin-top: 0.3rem; text-transform: uppercase; margin-bottom: 0;">STRATEGY • INSIGHT • IMPACT</p>'
+            '</div>'
+        )
 
 # Theme Custom CSS
 current_theme = st.session_state.get("app_theme", "System Default")
@@ -145,6 +154,7 @@ st.markdown(f"""
     div[class*="stAppViewerFooter"],
     div[class*="stReportViewerFooter"],
     div[class*="viewerFooter"],
+    div[class*="StyledAppViewerFooter"],
     #stAppViewerFooter {{
         display: none !important;
         visibility: hidden !important;
@@ -158,10 +168,14 @@ st.markdown(f"""
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
         border-radius: 0.65rem !important;
         font-weight: 600 !important;
+        background: linear-gradient(90deg, #3B82F6, #8B5CF6) !important;
+        color: #FFFFFF !important;
+        border: none !important;
+        box-shadow: 0 10px 25px rgba(59, 130, 246, 0.4) !important;
     }}
     .stButton button:hover {{
         transform: translateY(-2px) scale(1.02) !important;
-        box-shadow: 0 10px 25px rgba(59, 130, 246, 0.35) !important;
+        box-shadow: 0 14px 28px rgba(59, 130, 246, 0.5) !important;
     }}
 
     .main-header {{
@@ -231,13 +245,13 @@ st.markdown(f"""
 # ==========================================
 if not st.session_state["splash_done"]:
     splash_card_html = get_brand_logo_card("splash")
-    splash_html = f"""
-    <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding-top: 3.5rem; padding-bottom: 1.5rem; width: 100%;">
-        {splash_card_html}
-        <h3 style="font-size: 1.6rem; font-weight: 700; color: #F1F5F9; margin: 1.75rem 0 0.75rem 0;">Agile Talent Deployment & Skill-Matching Engine</h3>
-        <p style="font-size: 1.05rem; color: #94A3B8; max-width: 640px; margin: 0 auto 1.5rem auto; line-height: 1.5;">Enterprise AI RAG Vector Pipeline • Explainable Match Auditing • Automated Gap Remediation</p>
-    </div>
-    """
+    splash_html = (
+        '<div style="display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding-top: 3.5rem; padding-bottom: 1.5rem; width: 100%;">'
+        f'{splash_card_html}'
+        '<h3 style="font-size: 1.6rem; font-weight: 700; color: #F1F5F9; margin: 1.75rem 0 0.75rem 0;">Agile Talent Deployment & Skill-Matching Engine</h3>'
+        '<p style="font-size: 1.05rem; color: #94A3B8; max-width: 640px; margin: 0 auto 1.5rem auto; line-height: 1.5;">Enterprise AI RAG Vector Pipeline • Explainable Match Auditing • Automated Gap Remediation</p>'
+        '</div>'
+    )
     st.markdown(splash_html, unsafe_allow_html=True)
 
     c_s1, c_s2, c_s3 = st.columns([2, 2.5, 2])
