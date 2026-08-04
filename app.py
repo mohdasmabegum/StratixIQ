@@ -8,7 +8,7 @@ from PIL import Image
 
 BACKEND_URL = os.getenv("BACKEND_URL", "http://localhost:8000")
 
-# Initialize Session State for Splash Screen & Local Fallback Pool
+# Initialize Session State
 if "splash_done" not in st.session_state:
     st.session_state["splash_done"] = False
 
@@ -18,20 +18,61 @@ if "deploy_modal_candidate" not in st.session_state:
 if "llm_provider" not in st.session_state:
     st.session_state["llm_provider"] = "hybrid_local"
 
+if "app_theme" not in st.session_state:
+    st.session_state["app_theme"] = "Dark Glassmorphism"
+
 st.set_page_config(
     page_title="StratixIQ - AI Agile Talent Deployment Engine",
     layout="wide",
     initial_sidebar_state="expanded" if st.session_state.get("splash_done") else "collapsed"
 )
 
-# Function to encode logo image to base64 for HTML rendering
-def get_base64_logo():
-    if os.path.exists("logo.png"):
-        with open("logo.png", "rb") as f:
-            return base64.b64encode(f.read()).decode("utf-8")
-    return ""
+# Function to generate reusable brand logo card component
+def get_brand_logo_card(variant="splash"):
+    if variant == "splash":
+        return """
+        <div style="background: linear-gradient(135deg, rgba(30, 41, 59, 0.95), rgba(15, 23, 42, 0.95)); padding: 2.2rem 4rem; border-radius: 2.2rem; border: 1px solid rgba(255, 255, 255, 0.14); box-shadow: 0 20px 50px rgba(59, 130, 246, 0.35); display: inline-block; text-align: center;">
+            <h1 style="font-size: 4rem; font-weight: 900; letter-spacing: -0.03em; background: linear-gradient(90deg, #60A5FA, #C084FC); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin: 0; line-height: 1.1; font-family: 'Inter', sans-serif;">StratixIQ</h1>
+            <p style="font-size: 0.9rem; font-weight: 800; color: #38BDF8; letter-spacing: 0.25em; margin-top: 0.6rem; text-transform: uppercase; margin-bottom: 0;">STRATEGY • INSIGHT • IMPACT</p>
+        </div>
+        """
+    elif variant == "header":
+        return """
+        <div style="background: linear-gradient(135deg, rgba(30, 41, 59, 0.85), rgba(15, 23, 42, 0.85)); padding: 1.1rem 2.2rem; border-radius: 1.5rem; border: 1px solid rgba(255, 255, 255, 0.12); box-shadow: 0 12px 30px rgba(59, 130, 246, 0.25); display: inline-block;">
+            <h2 style="font-size: 2.2rem; font-weight: 900; letter-spacing: -0.03em; background: linear-gradient(90deg, #60A5FA, #C084FC); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin: 0; line-height: 1.1; font-family: 'Inter', sans-serif;">StratixIQ</h2>
+            <p style="font-size: 0.7rem; font-weight: 800; color: #38BDF8; letter-spacing: 0.22em; margin-top: 0.3rem; text-transform: uppercase; margin-bottom: 0;">STRATEGY • INSIGHT • IMPACT</p>
+        </div>
+        """
+    else: # sidebar
+        return """
+        <div style="background: linear-gradient(135deg, rgba(30, 41, 59, 0.9), rgba(15, 23, 42, 0.9)); padding: 1rem 1.25rem; border-radius: 1.25rem; border: 1px solid rgba(255, 255, 255, 0.14); box-shadow: 0 8px 25px rgba(59, 130, 246, 0.25); text-align: center; margin-bottom: 1.25rem;">
+            <h3 style="font-size: 1.75rem; font-weight: 900; letter-spacing: -0.03em; background: linear-gradient(90deg, #60A5FA, #C084FC); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin: 0; line-height: 1.1; font-family: 'Inter', sans-serif;">StratixIQ</h3>
+            <p style="font-size: 0.62rem; font-weight: 800; color: #38BDF8; letter-spacing: 0.2em; margin-top: 0.3rem; text-transform: uppercase; margin-bottom: 0;">STRATEGY • INSIGHT • IMPACT</p>
+        </div>
+        """
 
 hide_sidebar_css = "" if st.session_state["splash_done"] else "[data-testid='stSidebar'] {display: none !important;}"
+
+# Dynamic Theme Colors
+current_theme = st.session_state.get("app_theme", "Dark Glassmorphism")
+if current_theme == "Light Enterprise":
+    card_bg_color = "#FFFFFF"
+    card_border_color = "rgba(226, 232, 240, 0.9)"
+    text_main_color = "#0F172A"
+    text_sub_color = "#475569"
+    card_shadow = "0 10px 25px rgba(0, 0, 0, 0.06)"
+elif current_theme == "Cyber Neon Glow":
+    card_bg_color = "rgba(17, 24, 39, 0.85)"
+    card_border_color = "rgba(56, 189, 248, 0.4)"
+    text_main_color = "#F9FAFB"
+    text_sub_color = "#38BDF8"
+    card_shadow = "0 12px 30px rgba(56, 189, 248, 0.25)"
+else: # Dark Glassmorphism
+    card_bg_color = "rgba(30, 41, 59, 0.75)"
+    card_border_color = "rgba(255, 255, 255, 0.12)"
+    text_main_color = "#F8FAFC"
+    text_sub_color = "#94A3B8"
+    card_shadow = "0 12px 30px rgba(59, 130, 246, 0.2)"
 
 # CSS Custom Theme & Animation Styling
 st.markdown(f"""
@@ -88,17 +129,18 @@ st.markdown(f"""
     }}
 
     .metric-card {{
-        background-color: rgba(30, 41, 59, 0.75);
-        border: 1px solid rgba(255, 255, 255, 0.12);
+        background-color: {card_bg_color} !important;
+        border: 1px solid {card_border_color} !important;
         border-radius: 0.85rem;
         padding: 1.25rem;
         margin-bottom: 1rem;
+        box-shadow: {card_shadow} !important;
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }}
     .metric-card:hover {{
-        border-color: rgba(59, 130, 246, 0.5);
+        border-color: rgba(59, 130, 246, 0.5) !important;
         transform: translateY(-4px);
-        box-shadow: 0 16px 32px -6px rgba(59, 130, 246, 0.25);
+        box-shadow: 0 16px 32px -6px rgba(59, 130, 246, 0.3) !important;
     }}
 
     .badge-avail {{
@@ -143,16 +185,14 @@ st.markdown(f"""
 """, unsafe_allow_html=True)
 
 # ==========================================
-# SPLASH SCREEN WITH TYPOGRAPHY HERO BRANDING
+# SPLASH SCREEN WITH BRAND LOGO CARD
 # ==========================================
 if not st.session_state["splash_done"]:
-    splash_html = """
+    splash_card_html = get_brand_logo_card("splash")
+    splash_html = f"""
     <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding-top: 3.5rem; padding-bottom: 2rem; width: 100%;">
-        <div style="background: linear-gradient(135deg, rgba(30, 41, 59, 0.9), rgba(15, 23, 42, 0.9)); padding: 2rem 3.5rem; border-radius: 2rem; border: 1px solid rgba(255, 255, 255, 0.12); box-shadow: 0 20px 45px rgba(59, 130, 246, 0.25); display: inline-block; margin-bottom: 1.75rem;">
-            <h1 style="font-size: 3.8rem; font-weight: 900; letter-spacing: -0.03em; background: linear-gradient(90deg, #60A5FA, #A78BFA); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin: 0; line-height: 1.1;">StratixIQ</h1>
-            <p style="font-size: 0.85rem; font-weight: 700; color: #38BDF8; letter-spacing: 0.2em; margin-top: 0.5rem; text-transform: uppercase;">Strategy • Insight • Impact</p>
-        </div>
-        <h3 style="font-size: 1.5rem; font-weight: 700; color: #F1F5F9; margin: 0 0 0.75rem 0;">Agile Talent Deployment & Skill-Matching Engine</h3>
+        {splash_card_html}
+        <h3 style="font-size: 1.5rem; font-weight: 700; color: #F1F5F9; margin: 1.5rem 0 0.75rem 0;">Agile Talent Deployment & Skill-Matching Engine</h3>
         <p style="font-size: 1.05rem; color: #94A3B8; max-width: 640px; margin: 0 auto; line-height: 1.5;">Enterprise AI RAG Vector Pipeline • Explainable Match Auditing • Automated Gap Remediation</p>
     </div>
     """
@@ -179,10 +219,24 @@ else:
     except Exception:
         backend_online = False
 
-    # Sidebar Controls & LLM Provider Toggle
+    # Sidebar Controls & Theme Selector
     with st.sidebar:
-        st.markdown("## StratixIQ Enterprise")
+        # Sidebar Header with Glowing Brand Logo Card
+        st.markdown(get_brand_logo_card("sidebar"), unsafe_allow_html=True)
         st.markdown("**AI Agile Talent Matching Engine**")
+        st.divider()
+
+        # UI Design System & Theme Selector
+        st.subheader("🎨 UI Design System & Theme")
+        theme_option = st.selectbox(
+            "Select Interface Theme",
+            options=["Dark Glassmorphism", "Light Enterprise", "Cyber Neon Glow"],
+            index=["Dark Glassmorphism", "Light Enterprise", "Cyber Neon Glow"].index(st.session_state.get("app_theme", "Dark Glassmorphism"))
+        )
+        if theme_option != st.session_state.get("app_theme"):
+            st.session_state["app_theme"] = theme_option
+            st.rerun()
+
         st.divider()
 
         # Enterprise Data Privacy Toggle
@@ -213,9 +267,13 @@ else:
         else:
             st.info("Direct Local Inference Engine Active")
 
-    # Main App Header
-    st.markdown('<p class="main-header">StratixIQ: Agile Talent Deployment Engine</p>', unsafe_allow_html=True)
-    st.caption("AI-driven RAG vector pipeline for candidate staffing, explainable match auditing, and gap remediation")
+    # Main App Header with Brand Logo Card
+    col_brand, col_title = st.columns([2.2, 5.8])
+    with col_brand:
+        st.markdown(get_brand_logo_card("header"), unsafe_allow_html=True)
+    with col_title:
+        st.markdown('<p class="main-header">Agile Talent Deployment Engine</p>', unsafe_allow_html=True)
+        st.caption("AI-driven RAG vector pipeline for candidate staffing, explainable match auditing, and gap remediation")
 
     tab1, tab2, tab3 = st.tabs(["📥 Talent & Resume Ingestion Hub", "🎯 Agile Project Staffing Engine", "👥 Talent Roster Matrix"])
 
