@@ -21,8 +21,18 @@ if "llm_provider" not in st.session_state:
 if "app_theme" not in st.session_state:
     st.session_state["app_theme"] = "System Default"
 
-if "sidebar_nav_menu" not in st.session_state:
-    st.session_state["sidebar_nav_menu"] = "🎯 Single Candidate Matching"
+# List of Feature Pages
+PAGES = [
+    "🎯 Single Candidate Matching",
+    "🧩 Multi-Agent Squad Builder",
+    "📥 Talent Ingestion & Roster Hub",
+    "📈 Career Growth & Promotion Audit",
+    "⭐ Performance RL Feedback Loop",
+    "🛡️ Knowledge Graph & HR AI Fairness Auditor"
+]
+
+if "current_page" not in st.session_state:
+    st.session_state["current_page"] = PAGES[0]
 
 st.set_page_config(
     page_title="StratixIQ - AI Agile Talent Deployment Engine",
@@ -290,20 +300,29 @@ else:
         st.markdown("**Enterprise AI Talent Deployment Engine**")
         st.divider()
 
+    # Sidebar Controls, Navigation Menu & Theme Selector
+    with st.sidebar:
+        # Sidebar Header with Glowing Brand Logo Card
+        st.markdown(get_brand_logo_card("sidebar"), unsafe_allow_html=True)
+        st.markdown("**Enterprise AI Talent Deployment Engine**")
+        st.divider()
+
         # Sidebar Feature Navigation Menu
         st.subheader("📌 Platform Navigation")
+        curr_page = st.session_state.get("current_page", PAGES[0])
+        curr_idx = PAGES.index(curr_page) if curr_page in PAGES else 0
+
         nav_selection = st.radio(
             "Select Feature Module",
-            options=[
-                "🎯 Single Candidate Matching",
-                "🧩 Multi-Agent Squad Builder",
-                "📥 Talent Ingestion & Roster Hub",
-                "📈 Career Growth & Promotion Audit",
-                "⭐ Performance RL Feedback Loop",
-                "🛡️ Knowledge Graph & HR AI Fairness Auditor"
-            ],
-            key="sidebar_nav_menu"
+            options=PAGES,
+            index=curr_idx,
+            key="sidebar_radio_choice"
         )
+
+        if nav_selection != st.session_state["current_page"]:
+            st.session_state["current_page"] = nav_selection
+            st.rerun()
+
         st.divider()
 
         # UI Design System & Theme Selector
@@ -359,39 +378,41 @@ else:
     st.divider()
 
     # Quick Sidebar Navigation Bar (Shortcut Bar)
-    st.caption("📌 **Quick Sidebar Navigation Bar** (Click to switch feature modules immediately):")
+    st.caption("📌 **Quick Navigation Shortcuts** (Click any button to open dedicated feature page):")
     n_c1, n_c2, n_c3, n_c4, n_c5, n_c6 = st.columns(6)
 
     if n_c1.button("🎯 Single Match", use_container_width=True, key="shortcut_t1"):
-        st.session_state["sidebar_nav_menu"] = "🎯 Single Candidate Matching"
+        st.session_state["current_page"] = PAGES[0]
         st.rerun()
 
     if n_c2.button("🧩 Squad Builder", use_container_width=True, key="shortcut_t2"):
-        st.session_state["sidebar_nav_menu"] = "🧩 Multi-Agent Squad Builder"
+        st.session_state["current_page"] = PAGES[1]
         st.rerun()
 
     if n_c3.button("📥 Roster Hub", use_container_width=True, key="shortcut_t3"):
-        st.session_state["sidebar_nav_menu"] = "📥 Talent Ingestion & Roster Hub"
+        st.session_state["current_page"] = PAGES[2]
         st.rerun()
 
     if n_c4.button("📈 Career Audit", use_container_width=True, key="shortcut_t4"):
-        st.session_state["sidebar_nav_menu"] = "📈 Career Growth & Promotion Audit"
+        st.session_state["current_page"] = PAGES[3]
         st.rerun()
 
     if n_c5.button("⭐ RL Feedback", use_container_width=True, key="shortcut_t5"):
-        st.session_state["sidebar_nav_menu"] = "⭐ Performance RL Feedback Loop"
+        st.session_state["current_page"] = PAGES[4]
         st.rerun()
 
     if n_c6.button("🛡️ AI Fairness", use_container_width=True, key="shortcut_t6"):
-        st.session_state["sidebar_nav_menu"] = "🛡️ Knowledge Graph & HR AI Fairness Auditor"
+        st.session_state["current_page"] = PAGES[5]
         st.rerun()
 
     st.divider()
 
+    active_page = st.session_state.get("current_page", PAGES[0])
+
     # ==========================================
     # MODULE 1: SINGLE CANDIDATE MATCHING ENGINE
     # ==========================================
-    if nav_selection == "🎯 Single Candidate Matching":
+    if active_page == PAGES[0]:
         st.subheader("🎯 Match Engineering Requirements to Internal Talent Pool")
         st.caption("Perform semantic vector retrieval, explainable AI feature weighting, and automated gap remediation.")
         
@@ -538,7 +559,7 @@ else:
     # ==========================================
     # MODULE 2: MULTI-AGENT COLLABORATIVE SQUAD BUILDER
     # ==========================================
-    elif nav_selection == "🧩 Multi-Agent Squad Builder":
+    elif active_page == PAGES[1]:
         st.subheader("🧩 Multi-Agent Cross-Functional Squad Assembler")
         st.caption("Deconstruct complex project requirements into distinct technical role slots, query vector store, and assemble non-redundant team rosters.")
         
@@ -594,7 +615,7 @@ else:
     # ==========================================
     # MODULE 3: TALENT INGESTION & ROSTER HUB
     # ==========================================
-    elif nav_selection == "📥 Talent Ingestion & Roster Hub":
+    elif active_page == PAGES[2]:
         st.subheader("📥 Ingest Resume & Explore Internal Talent Pool Roster Matrix")
         
         with st.form("t3_upload_form", clear_on_submit=True):
@@ -695,7 +716,7 @@ else:
     # ==========================================
     # MODULE 4: CANDIDATE CAREER GROWTH AUDIT
     # ==========================================
-    elif nav_selection == "📈 Career Growth & Promotion Audit":
+    elif active_page == PAGES[3]:
         st.subheader("📈 Candidate Career Growth & Promotion Skill-Gap Auditor")
         st.caption("Empower employees to audit their profile against target senior enterprise roles and generate 4-week promotion readiness roadmaps.")
         
@@ -757,7 +778,7 @@ else:
     # ==========================================
     # MODULE 5: HISTORICAL PROJECT PERFORMANCE FEEDBACK LOOP
     # ==========================================
-    elif nav_selection == "⭐ Performance RL Feedback Loop":
+    elif active_page == PAGES[4]:
         st.subheader("⭐ Historical Project Performance & RL Feedback Loop")
         st.caption("Submit manager ratings (1-5 stars) on completed sprint assignments to dynamically weight vector search score multipliers.")
         
@@ -811,7 +832,7 @@ else:
     # ==========================================
     # MODULE 6: ENTERPRISE KNOWLEDGE GRAPH & HR AI FAIRNESS AUDITOR
     # ==========================================
-    elif nav_selection == "🛡️ Knowledge Graph & HR AI Fairness Auditor":
+    elif active_page == PAGES[5]:
         st.subheader("🛡️ Enterprise Knowledge Graph & HR AI Algorithmic Fairness Auditor")
         
         kg_col, f_col = st.columns(2)
