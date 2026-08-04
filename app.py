@@ -34,6 +34,9 @@ PAGES = [
 if "current_page" not in st.session_state:
     st.session_state["current_page"] = PAGES[0]
 
+if "active_feature" not in st.session_state:
+    st.session_state["active_feature"] = PAGES[0]
+
 st.set_page_config(
     page_title="StratixIQ - AI Agile Talent Deployment Engine",
     layout="wide",
@@ -300,20 +303,21 @@ else:
         st.markdown("**Enterprise AI Talent Deployment Engine**")
         st.divider()
 
-        # Sidebar Feature Navigation Menu
-        st.subheader("📌 Feature Navigation")
-        active_page = st.radio(
+        # Side Navbar Feature Selector
+        st.subheader("📌 Platform Navigation")
+        curr_feat = st.session_state.get("active_feature", PAGES[0])
+        curr_idx = PAGES.index(curr_feat) if curr_feat in PAGES else 0
+
+        sb_feature = st.selectbox(
             "Select Workspace Feature",
-            options=[
-                "🎯 Single Candidate Matching",
-                "🧩 Multi-Agent Squad Builder",
-                "📥 Talent Ingestion & Roster Hub",
-                "📈 Career Growth & Promotion Audit",
-                "⭐ Performance RL Feedback Loop",
-                "🛡️ Knowledge Graph & HR AI Fairness Auditor"
-            ],
-            key="app_main_navigation"
+            options=PAGES,
+            index=curr_idx,
+            key="side_navbar_selectbox"
         )
+        if sb_feature != st.session_state.get("active_feature"):
+            st.session_state["active_feature"] = sb_feature
+            st.rerun()
+
         st.divider()
 
         # UI Design System & Theme Selector
@@ -368,10 +372,44 @@ else:
 
     st.divider()
 
+    # Interactive Feature Navbar Shortcut Bar
+    st.markdown("#### ⚡ Workspace Navbar Shortcuts (Click to switch feature view):")
+    n1, n2, n3, n4, n5, n6 = st.columns(6)
+
+    active_feat = st.session_state.get("active_feature", PAGES[0])
+
+    if n1.button("🎯 Single Match", use_container_width=True, type="primary" if active_feat == PAGES[0] else "secondary", key="nav_shortcut_1"):
+        st.session_state["active_feature"] = PAGES[0]
+        st.rerun()
+
+    if n2.button("🧩 Squad Builder", use_container_width=True, type="primary" if active_feat == PAGES[1] else "secondary", key="nav_shortcut_2"):
+        st.session_state["active_feature"] = PAGES[1]
+        st.rerun()
+
+    if n3.button("📥 Roster Hub", use_container_width=True, type="primary" if active_feat == PAGES[2] else "secondary", key="nav_shortcut_3"):
+        st.session_state["active_feature"] = PAGES[2]
+        st.rerun()
+
+    if n4.button("📈 Career Audit", use_container_width=True, type="primary" if active_feat == PAGES[3] else "secondary", key="nav_shortcut_4"):
+        st.session_state["active_feature"] = PAGES[3]
+        st.rerun()
+
+    if n5.button("⭐ RL Feedback", use_container_width=True, type="primary" if active_feat == PAGES[4] else "secondary", key="nav_shortcut_5"):
+        st.session_state["active_feature"] = PAGES[4]
+        st.rerun()
+
+    if n6.button("🛡️ AI Fairness", use_container_width=True, type="primary" if active_feat == PAGES[5] else "secondary", key="nav_shortcut_6"):
+        st.session_state["active_feature"] = PAGES[5]
+        st.rerun()
+
+    st.divider()
+
+    active_page = st.session_state.get("active_feature", PAGES[0])
+
     # ==========================================
     # PAGE 1: SINGLE CANDIDATE MATCHING ENGINE
     # ==========================================
-    if active_page == "🎯 Single Candidate Matching":
+    if active_page == PAGES[0]:
         st.subheader("🎯 Match Engineering Requirements to Internal Talent Pool")
         st.caption("Perform semantic vector retrieval, explainable AI feature weighting, and automated gap remediation.")
         
