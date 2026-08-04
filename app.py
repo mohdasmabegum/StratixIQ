@@ -280,11 +280,27 @@ else:
     except Exception:
         backend_online = False
 
-    # Sidebar Controls & Theme Selector
+    # Sidebar Controls, Navigation Menu & Theme Selector
     with st.sidebar:
         # Sidebar Header with Glowing Brand Logo Card
         st.markdown(get_brand_logo_card("sidebar"), unsafe_allow_html=True)
-        st.markdown("**AI Agile Talent Matching Engine**")
+        st.markdown("**Enterprise AI Talent Deployment Engine**")
+        st.divider()
+
+        # Sidebar Feature Navigation Menu
+        st.subheader("📌 Platform Navigation")
+        nav_selection = st.radio(
+            "Select Feature Module",
+            options=[
+                "🎯 Single Candidate Matching",
+                "🧩 Multi-Agent Squad Builder",
+                "📥 Talent Ingestion & Roster Hub",
+                "📈 Career Growth & Promotion Audit",
+                "⭐ Performance RL Feedback Loop",
+                "🛡️ Knowledge Graph & HR AI Fairness Auditor"
+            ],
+            key="sidebar_nav_menu"
+        )
         st.divider()
 
         # UI Design System & Theme Selector
@@ -328,28 +344,22 @@ else:
         else:
             st.info("Direct Local Inference Engine Active")
 
-    # Main App Header with Brand Logo Card
-    col_brand, col_title = st.columns([2.2, 5.8])
+    # Main App Header with Brand Logo Card & Info
+    col_brand, col_title = st.columns([2.5, 5.5])
     with col_brand:
         st.markdown(get_brand_logo_card("header"), unsafe_allow_html=True)
     with col_title:
-        st.markdown('<p class="main-header">Agile Talent Deployment Engine</p>', unsafe_allow_html=True)
-        st.caption("AI-driven RAG vector pipeline for candidate staffing, explainable match auditing, and gap remediation")
+        st.markdown('<h1 style="font-size: 2.3rem; font-weight: 800; color: #F8FAFC; margin: 0;">StratixIQ</h1>', unsafe_allow_html=True)
+        st.markdown('<p style="font-size: 0.95rem; font-weight: 700; color: #60A5FA; letter-spacing: 2px; margin: 0 0 0.5rem 0;">STRATEGY • INSIGHT • IMPACT</p>', unsafe_allow_html=True)
+        st.markdown('<p style="font-size: 0.95rem; color: #94A3B8; margin: 0; line-height: 1.4;">Enterprise AI RAG Vector Pipeline • Multi-Agent Squad Builder • Algorithmic Fairness Auditor</p>', unsafe_allow_html=True)
 
-    tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
-        "🎯 Single Candidate Matching",
-        "🧩 Multi-Agent Squad Builder",
-        "📥 Talent Ingestion & Roster Hub",
-        "📈 Career Growth & Promotion Audit",
-        "⭐ Performance RL Feedback Loop",
-        "🛡️ Knowledge Graph & HR AI Fairness Auditor"
-    ])
+    st.divider()
 
     # ==========================================
-    # TAB 1: SINGLE CANDIDATE MATCHING ENGINE
+    # MODULE 1: SINGLE CANDIDATE MATCHING ENGINE
     # ==========================================
-    with tab1:
-        st.subheader("Match Engineering Requirements to Internal Talent Pool")
+    if nav_selection == "🎯 Single Candidate Matching":
+        st.subheader("🎯 Match Engineering Requirements to Internal Talent Pool")
         st.caption("Perform semantic vector retrieval, explainable AI feature weighting, and automated gap remediation.")
         
         st.markdown("**Sample Project Prompts:**")
@@ -493,9 +503,9 @@ else:
                 st.rerun()
 
     # ==========================================
-    # TAB 2: MULTI-AGENT COLLABORATIVE SQUAD BUILDER
+    # MODULE 2: MULTI-AGENT COLLABORATIVE SQUAD BUILDER
     # ==========================================
-    with tab2:
+    elif nav_selection == "🧩 Multi-Agent Squad Builder":
         st.subheader("🧩 Multi-Agent Cross-Functional Squad Assembler")
         st.caption("Deconstruct complex project requirements into distinct technical role slots, query vector store, and assemble non-redundant team rosters.")
         
@@ -549,10 +559,10 @@ else:
                     st.success(f"✅ **Squad Deployment Activated**: All {squad_data['squad_size']} team members notified!")
 
     # ==========================================
-    # TAB 3: TALENT INGESTION & ROSTER HUB
+    # MODULE 3: TALENT INGESTION & ROSTER HUB
     # ==========================================
-    with tab3:
-        st.subheader("Ingest Resume & Explore Internal Talent Pool Roster Matrix")
+    elif nav_selection == "📥 Talent Ingestion & Roster Hub":
+        st.subheader("📥 Ingest Resume & Explore Internal Talent Pool Roster Matrix")
         
         with st.form("t3_upload_form", clear_on_submit=True):
             c1, c2 = st.columns(2)
@@ -609,12 +619,8 @@ else:
                 pass
         
         if not roster:
-            from utils import vector_store
-            roster = [
-                {"name": "Alex Rivera", "role": "Senior Full-Stack AI Engineer", "bandwidth_status": "Available Immediately", "skills": ["Python", "FastAPI", "ChromaDB", "React"], "years_experience": 7, "bio": "Specializes in RAG pipelines."},
-                {"name": "Elena Rostova", "role": "ML & Data Architect", "bandwidth_status": "Part-time bandwidth (50%)", "skills": ["Python", "PyTorch", "HuggingFace", "Vector DB"], "years_experience": 6, "bio": "LLM Fine-tuning expert."},
-                {"name": "Marcus Vance", "role": "Cloud DevOps Engineer", "bandwidth_status": "Available Immediately", "skills": ["AWS CDK", "Kubernetes", "Docker", "CI/CD"], "years_experience": 8, "bio": "Cloud platform engineer."}
-            ]
+            from utils import INITIAL_TALENT_POOL
+            roster = INITIAL_TALENT_POOL
 
         if search_query.strip():
             q = search_query.lower()
@@ -654,15 +660,15 @@ else:
                 st.markdown(card_html, unsafe_allow_html=True)
 
     # ==========================================
-    # TAB 4: CANDIDATE CAREER GROWTH AUDIT
+    # MODULE 4: CANDIDATE CAREER GROWTH AUDIT
     # ==========================================
-    with tab4:
+    elif nav_selection == "📈 Career Growth & Promotion Audit":
         st.subheader("📈 Candidate Career Growth & Promotion Skill-Gap Auditor")
         st.caption("Empower employees to audit their profile against target senior enterprise roles and generate 4-week promotion readiness roadmaps.")
         
         ca1, ca2 = st.columns(2)
         with ca1:
-            sel_cand_name = st.selectbox("Select Candidate for Audit", ["Alex Rivera", "Elena Rostova", "Marcus Vance", "Sophia Chen", "David Kim"], key="t4_cand_sel")
+            sel_cand_name = st.selectbox("Select Candidate for Audit", ["Alex Rivera", "Elena Rostova", "Marcus Vance", "Rahul Sharma", "Priya Patel", "Sneha Reddy", "Vikramaditya Rao"], key="t4_cand_sel")
         with ca2:
             sel_target_role = st.selectbox("Select Target Senior Role", [
                 "Principal AI Systems Architect",
@@ -677,8 +683,10 @@ else:
                 "Alex Rivera": ["Python", "FastAPI", "ChromaDB", "LangChain", "React"],
                 "Elena Rostova": ["Python", "PyTorch", "HuggingFace", "Vector DB", "MLOps"],
                 "Marcus Vance": ["AWS CDK", "Kubernetes", "Docker", "CI/CD", "Python"],
-                "Sophia Chen": ["TypeScript", "React", "Next.js", "Tailwind CSS", "UI/UX"],
-                "David Kim": ["Python", "Go", "PostgreSQL", "Redis", "FastAPI"]
+                "Rahul Sharma": ["Python", "FastAPI", "PyMuPDF", "ChromaDB", "PyTorch"],
+                "Priya Patel": ["Java", "Spring Boot", "MySQL", "Kubernetes", "AWS"],
+                "Sneha Reddy": ["React", "Node.js", "TypeScript", "PostgreSQL", "GraphQL"],
+                "Vikramaditya Rao": ["Terraform", "AWS", "Kubernetes", "Docker", "CI/CD"]
             }
             c_skills = cand_skills_map.get(sel_cand_name, ["Python", "Engineering"])
 
@@ -718,15 +726,15 @@ else:
                     st.markdown(f"**{week_k.replace('_', ' ').title()}:** {step}")
 
     # ==========================================
-    # TAB 5: HISTORICAL PROJECT PERFORMANCE FEEDBACK LOOP
+    # MODULE 5: HISTORICAL PROJECT PERFORMANCE FEEDBACK LOOP
     # ==========================================
-    with tab5:
+    elif nav_selection == "⭐ Performance RL Feedback Loop":
         st.subheader("⭐ Historical Project Performance & RL Feedback Loop")
         st.caption("Submit manager ratings (1-5 stars) on completed sprint assignments to dynamically weight vector search score multipliers.")
         
         fb1, fb2, fb3 = st.columns(3)
         with fb1:
-            fb_cand_id = st.selectbox("Select Deployed Candidate", ["cand_1", "cand_2", "cand_3", "cand_4", "cand_5"], format_func=lambda x: {"cand_1": "Alex Rivera", "cand_2": "Elena Rostova", "cand_3": "Marcus Vance", "cand_4": "Sophia Chen", "cand_5": "David Kim"}[x], key="t5_cand_id")
+            fb_cand_id = st.selectbox("Select Deployed Candidate", ["cand_1", "cand_2", "cand_3", "cand_6", "cand_7"], format_func=lambda x: {"cand_1": "Alex Rivera", "cand_2": "Elena Rostova", "cand_3": "Marcus Vance", "cand_6": "Rahul Sharma", "cand_7": "Priya Patel"}[x], key="t5_cand_id")
         with fb2:
             fb_project_title = st.text_input("Project / Sprint Title", value="Q3 Enterprise AI Microservice Sprint", key="t5_proj_title")
         with fb3:
@@ -735,7 +743,7 @@ else:
         fb_notes = st.text_area("Performance Feedback Notes", value="Delivered microservice architecture ahead of schedule with 99.9% uptime.", height=80, key="t5_notes")
         
         if st.button("⭐ Submit Manager Rating & Update RL Vector Multiplier", type="primary", key="t5_submit_btn"):
-            cand_name_map = {"cand_1": "Alex Rivera", "cand_2": "Elena Rostova", "cand_3": "Marcus Vance", "cand_4": "Sophia Chen", "cand_5": "David Kim"}
+            cand_name_map = {"cand_1": "Alex Rivera", "cand_2": "Elena Rostova", "cand_3": "Marcus Vance", "cand_6": "Rahul Sharma", "cand_7": "Priya Patel"}
             fb_res = None
             if backend_online:
                 try:
@@ -768,10 +776,10 @@ else:
                 st.caption(f"Feedback: \"{rec['feedback_text']}\"")
 
     # ==========================================
-    # TAB 6: ENTERPRISE KNOWLEDGE GRAPH & HR AI FAIRNESS AUDITOR
+    # MODULE 6: ENTERPRISE KNOWLEDGE GRAPH & HR AI FAIRNESS AUDITOR
     # ==========================================
-    with tab6:
-        st.subheader("🕸️ Enterprise Knowledge Graph & HR AI Algorithmic Fairness Auditor")
+    elif nav_selection == "🛡️ Knowledge Graph & HR AI Fairness Auditor":
+        st.subheader("🛡️ Enterprise Knowledge Graph & HR AI Algorithmic Fairness Auditor")
         
         kg_col, f_col = st.columns(2)
         
@@ -795,7 +803,6 @@ else:
             st.metric("Total Enterprise Network Nodes", f"{kg_data['total_nodes']} Nodes")
             st.metric("Total Skill & Role Connections", f"{kg_data['total_edges']} Edges")
 
-            # Render Visual Network Nodes List
             st.markdown("**Graph Node Cluster Breakdown:**")
             for node in kg_data["nodes"][:8]:
                 st.markdown(f"• **{node['type']}:** <span style='color:{node['color']}; font-weight:700;'>{node['label']}</span>", unsafe_allow_html=True)
@@ -830,3 +837,14 @@ else:
             st.markdown("• **Age / Gender / Location Weights:** `0.0%` (Zero Proxy Data)")
             st.markdown("• **Merit-Based Cosine Similarity Weight:** `100.0%`")
             st.caption(f"Certification Note: {fair_data['certification_summary']}")
+
+    # ==========================================
+    # PROFESSIONAL FOOTER
+    # ==========================================
+    footer_html = (
+        '<div style="text-align: center; padding: 2rem 0 1.5rem 0; border-top: 1px solid rgba(255, 255, 255, 0.1); margin-top: 3.5rem; color: #94A3B8; font-size: 0.88rem;">'
+        '© 2026 <strong>StratixIQ</strong>. Enterprise AI Talent Deployment & Skill-Matching Engine. All Rights Reserved.'
+        '</div>'
+    )
+    st.markdown(footer_html, unsafe_allow_html=True)
+
