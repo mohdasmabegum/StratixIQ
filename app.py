@@ -21,6 +21,9 @@ if "llm_provider" not in st.session_state:
 if "app_theme" not in st.session_state:
     st.session_state["app_theme"] = "System Default"
 
+if "sidebar_nav_menu" not in st.session_state:
+    st.session_state["sidebar_nav_menu"] = "🎯 Single Candidate Matching"
+
 st.set_page_config(
     page_title="StratixIQ - AI Agile Talent Deployment Engine",
     layout="wide",
@@ -352,6 +355,36 @@ else:
         st.markdown('<h1 style="font-size: 2.3rem; font-weight: 800; color: #F8FAFC; margin: 0;">StratixIQ</h1>', unsafe_allow_html=True)
         st.markdown('<p style="font-size: 0.95rem; font-weight: 700; color: #60A5FA; letter-spacing: 2px; margin: 0 0 0.5rem 0;">STRATEGY • INSIGHT • IMPACT</p>', unsafe_allow_html=True)
         st.markdown('<p style="font-size: 0.95rem; color: #94A3B8; margin: 0; line-height: 1.4;">Enterprise AI RAG Vector Pipeline • Multi-Agent Squad Builder • Algorithmic Fairness Auditor</p>', unsafe_allow_html=True)
+
+    st.divider()
+
+    # Quick Sidebar Navigation Bar (Shortcut Bar)
+    st.caption("📌 **Quick Sidebar Navigation Bar** (Click to switch feature modules immediately):")
+    n_c1, n_c2, n_c3, n_c4, n_c5, n_c6 = st.columns(6)
+
+    if n_c1.button("🎯 Single Match", use_container_width=True, key="shortcut_t1"):
+        st.session_state["sidebar_nav_menu"] = "🎯 Single Candidate Matching"
+        st.rerun()
+
+    if n_c2.button("🧩 Squad Builder", use_container_width=True, key="shortcut_t2"):
+        st.session_state["sidebar_nav_menu"] = "🧩 Multi-Agent Squad Builder"
+        st.rerun()
+
+    if n_c3.button("📥 Roster Hub", use_container_width=True, key="shortcut_t3"):
+        st.session_state["sidebar_nav_menu"] = "📥 Talent Ingestion & Roster Hub"
+        st.rerun()
+
+    if n_c4.button("📈 Career Audit", use_container_width=True, key="shortcut_t4"):
+        st.session_state["sidebar_nav_menu"] = "📈 Career Growth & Promotion Audit"
+        st.rerun()
+
+    if n_c5.button("⭐ RL Feedback", use_container_width=True, key="shortcut_t5"):
+        st.session_state["sidebar_nav_menu"] = "⭐ Performance RL Feedback Loop"
+        st.rerun()
+
+    if n_c6.button("🛡️ AI Fairness", use_container_width=True, key="shortcut_t6"):
+        st.session_state["sidebar_nav_menu"] = "🛡️ Knowledge Graph & HR AI Fairness Auditor"
+        st.rerun()
 
     st.divider()
 
