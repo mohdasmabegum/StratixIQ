@@ -738,13 +738,17 @@ class SquadAssemblerManager:
             if selected:
                 assigned_candidate_ids.add(selected["candidate_id"])
                 eval_data = llm_mgr.generate_structured_match(project_scope, selected)
+                m_skills = eval_data.get("verified_strengths") or selected.get("skills", [])
+                if isinstance(m_skills, str):
+                    m_skills = [s.strip() for s in m_skills.split(",") if s.strip()]
+                
                 squad_roster.append({
                     "role_title": role_spec["role_title"],
                     "candidate_id": selected["candidate_id"],
                     "candidate_name": selected["candidate_name"],
                     "current_role": selected["role"],
                     "bandwidth_status": selected["bandwidth_status"],
-                    "matching_skills": eval_data.get("verified_strengths", selected["skills"]),
+                    "matching_skills": m_skills,
                     "match_confidence": eval_data.get("match_percentage", 85),
                     "role_fit_rationale": eval_data.get("deployment_rationale", "Assigned based on core capability alignment.")
                 })
@@ -753,7 +757,11 @@ class SquadAssemblerManager:
         avg_confidence = round(sum(m["match_confidence"] for m in squad_roster) / max(1, len(squad_roster)), 1)
         skills_covered = set()
         for member in squad_roster:
-            skills_covered.update(member["matching_skills"])
+            m_s = member.get("matching_skills", [])
+            if isinstance(m_s, list):
+                skills_covered.update(m_s)
+            elif isinstance(m_s, str):
+                skills_covered.add(m_s)
             
         balance_index = round(min(98.0, 70.0 + len(skills_covered) * 3.5), 1)
 

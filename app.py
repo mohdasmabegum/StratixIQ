@@ -699,9 +699,12 @@ else:
         st.subheader("📈 Candidate Career Growth & Promotion Skill-Gap Auditor")
         st.caption("Empower employees to audit their profile against target senior enterprise roles and generate 4-week promotion readiness roadmaps.")
         
+        from utils import INITIAL_TALENT_POOL
+        all_cand_names = [c["name"] for c in INITIAL_TALENT_POOL]
+        
         ca1, ca2 = st.columns(2)
         with ca1:
-            sel_cand_name = st.selectbox("Select Candidate for Audit", ["Alex Rivera", "Elena Rostova", "Marcus Vance", "Rahul Sharma", "Priya Patel", "Sneha Reddy", "Vikramaditya Rao"], key="t4_cand_sel")
+            sel_cand_name = st.selectbox("Select Candidate for Audit", options=all_cand_names, key="t4_cand_sel")
         with ca2:
             sel_target_role = st.selectbox("Select Target Senior Role", [
                 "Principal AI Systems Architect",
@@ -712,22 +715,15 @@ else:
 
         if st.button("🚀 Generate Career Audit & Promotion Roadmap", type="primary", key="t4_audit_btn"):
             audit_res = None
-            cand_skills_map = {
-                "Alex Rivera": ["Python", "FastAPI", "ChromaDB", "LangChain", "React"],
-                "Elena Rostova": ["Python", "PyTorch", "HuggingFace", "Vector DB", "MLOps"],
-                "Marcus Vance": ["AWS CDK", "Kubernetes", "Docker", "CI/CD", "Python"],
-                "Rahul Sharma": ["Python", "FastAPI", "PyMuPDF", "ChromaDB", "PyTorch"],
-                "Priya Patel": ["Java", "Spring Boot", "MySQL", "Kubernetes", "AWS"],
-                "Sneha Reddy": ["React", "Node.js", "TypeScript", "PostgreSQL", "GraphQL"],
-                "Vikramaditya Rao": ["Terraform", "AWS", "Kubernetes", "Docker", "CI/CD"]
-            }
-            c_skills = cand_skills_map.get(sel_cand_name, ["Python", "Engineering"])
+            matched_cand = next((c for c in INITIAL_TALENT_POOL if c["name"] == sel_cand_name), None)
+            c_skills = matched_cand["skills"] if matched_cand and "skills" in matched_cand else ["Python", "Engineering"]
+            c_role = matched_cand["role"] if matched_cand and "role" in matched_cand else "Senior Engineer"
 
             if backend_online:
                 try:
                     resp = requests.post(f"{BACKEND_URL}/career-growth-audit", json={
                         "candidate_name": sel_cand_name,
-                        "current_role": "Senior Engineer",
+                        "current_role": c_role,
                         "current_skills": c_skills,
                         "target_role": sel_target_role
                     }, timeout=5.0)
@@ -738,7 +734,7 @@ else:
 
             if not audit_res:
                 from utils import career_auditor
-                audit_res = career_auditor.generate_career_audit(sel_cand_name, "Senior Engineer", c_skills, sel_target_role)
+                audit_res = career_auditor.generate_career_audit(sel_cand_name, c_role, c_skills, sel_target_role)
 
             st.divider()
             st.markdown(f"### 🏆 Career Growth Audit: **{sel_cand_name}** → `{sel_target_role}`")
@@ -746,14 +742,14 @@ else:
             sc1, sc2 = st.columns([1.5, 3])
             with sc1:
                 st.metric("Promotion Readiness", f"{audit_res['promotion_readiness_score']}%")
-                st.progress(audit_res['promotion_readiness_score'] / 100.0)
+                st.progress(max(0.0, min(1.0, audit_res['promotion_readiness_score'] / 100.0)))
             with sc2:
                 st.markdown(f"**Verified Matching Skills:** {', '.join(audit_res['verified_matching_skills'])}")
                 st.markdown(f"**Critical Skill Gaps to Bridge:** {', '.join(audit_res['critical_skill_gaps'])}")
                 st.info(f"**Recommended Project Assignment:** {audit_res['recommended_internal_project']}")
 
             st.markdown("#### 📅 4-Week Actionable Upskilling Roadmap")
-            rm = audit_res["four_week_upskilling_roadmap"]
+            rm = audit_res.get("four_week_upskilling_roadmap") or {}
             for week_k, step in rm.items():
                 with st.container(border=True):
                     st.markdown(f"**{week_k.replace('_', ' ').title()}:** {step}")
@@ -765,9 +761,13 @@ else:
         st.subheader("⭐ Historical Project Performance & RL Feedback Loop")
         st.caption("Submit manager ratings (1-5 stars) on completed sprint assignments to dynamically weight vector search score multipliers.")
         
+        from utils import INITIAL_TALENT_POOL
+        all_cand_ids = [c["id"] for c in INITIAL_TALENT_POOL]
+        cand_name_map = {c["id"]: c["name"] for c in INITIAL_TALENT_POOL}
+        
         fb1, fb2, fb3 = st.columns(3)
         with fb1:
-            fb_cand_id = st.selectbox("Select Deployed Candidate", ["cand_1", "cand_2", "cand_3", "cand_6", "cand_7"], format_func=lambda x: {"cand_1": "Alex Rivera", "cand_2": "Elena Rostova", "cand_3": "Marcus Vance", "cand_6": "Rahul Sharma", "cand_7": "Priya Patel"}[x], key="t5_cand_id")
+            fb_cand_id = st.selectbox("Select Deployed Candidate", options=all_cand_ids, format_func=lambda cid: f"{cand_name_map.get(cid, cid)} ({cid})", key="t5_cand_id")
         with fb2:
             fb_project_title = st.text_input("Project / Sprint Title", value="Q3 Enterprise AI Microservice Sprint", key="t5_proj_title")
         with fb3:
@@ -776,13 +776,13 @@ else:
         fb_notes = st.text_area("Performance Feedback Notes", value="Delivered microservice architecture ahead of schedule with 99.9% uptime.", height=80, key="t5_notes")
         
         if st.button("⭐ Submit Manager Rating & Update RL Vector Multiplier", type="primary", key="t5_submit_btn"):
-            cand_name_map = {"cand_1": "Alex Rivera", "cand_2": "Elena Rostova", "cand_3": "Marcus Vance", "cand_6": "Rahul Sharma", "cand_7": "Priya Patel"}
+            selected_cand_name = cand_name_map.get(fb_cand_id, "Candidate")
             fb_res = None
             if backend_online:
                 try:
                     resp = requests.post(f"{BACKEND_URL}/submit-project-feedback", json={
                         "candidate_id": fb_cand_id,
-                        "candidate_name": cand_name_map[fb_cand_id],
+                        "candidate_name": selected_cand_name,
                         "project_title": fb_project_title,
                         "rating": fb_rating,
                         "feedback_text": fb_notes
@@ -794,10 +794,10 @@ else:
 
             if not fb_res:
                 from utils import feedback_manager
-                fb_res = feedback_manager.record_feedback(fb_cand_id, cand_name_map[fb_cand_id], fb_project_title, fb_rating, fb_notes)
+                fb_res = feedback_manager.record_feedback(fb_cand_id, selected_cand_name, fb_project_title, fb_rating, fb_notes)
 
             st.toast(f"✅ Feedback logged for {fb_res['candidate_name']}! Multiplier: {fb_res['vector_score_multiplier']}x", icon="⭐")
-            st.success(f"Recorded 5-Star feedback for **{fb_res['candidate_name']}**! Vector match multiplier updated to **{fb_res['vector_score_multiplier']}x**.")
+            st.success(f"Recorded {fb_rating}-Star feedback for **{fb_res['candidate_name']}**! Vector match multiplier updated to **{fb_res['vector_score_multiplier']}x**.")
 
         st.divider()
         st.markdown("#### 📜 Recent Manager Project Performance Feedback Audit Log")
