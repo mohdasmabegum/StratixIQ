@@ -46,15 +46,8 @@ if "current_page" not in st.session_state:
 if "active_feature" not in st.session_state:
     st.session_state["active_feature"] = PAGES[0]
 
-if "side_nav_radio" not in st.session_state:
-    st.session_state["side_nav_radio"] = st.session_state["active_feature"]
-
-def switch_page(target_page):
+def set_active_feature(target_page):
     st.session_state["active_feature"] = target_page
-    st.session_state["side_nav_radio"] = target_page
-
-def on_side_nav_change():
-    st.session_state["active_feature"] = st.session_state["side_nav_radio"]
 
 st.set_page_config(
     page_title="StratixIQ - AI Agile Talent Deployment Engine",
@@ -324,7 +317,7 @@ else:
 
         # Side Navbar Feature Selector Buttons
         st.subheader("📌 Feature Shortcuts")
-        st.caption("Click any item below to switch feature view:")
+        st.caption("Click any item below to switch feature view immediately:")
 
         curr_feat = st.session_state.get("active_feature", PAGES[0])
 
@@ -335,19 +328,20 @@ else:
             
             btn_type = "primary" if is_active else "secondary"
             if st.button(f"{icon} {short}", key=f"side_nav_btn_{idx}", type=btn_type, use_container_width=True):
-                switch_page(page_name)
+                st.session_state["active_feature"] = page_name
                 st.rerun()
 
         st.divider()
 
         curr_idx = PAGES.index(curr_feat) if curr_feat in PAGES else 0
-        st.selectbox(
+        sb_select = st.selectbox(
             "Quick Feature Dropdown",
             options=PAGES,
-            index=curr_idx,
-            key="side_nav_radio",
-            on_change=on_side_nav_change
+            index=curr_idx
         )
+        if sb_select != st.session_state.get("active_feature"):
+            st.session_state["active_feature"] = sb_select
+            st.rerun()
 
         st.divider()
 
@@ -392,35 +386,32 @@ else:
         else:
             st.info("Direct Local Inference Engine Active")
 
-    # Main App Header with Brand Logo Card & Platform Metadata
-    col_brand, col_title = st.columns([2.5, 5.5])
+    # Main App Header with Brand Logo Card, 3-Line Hamburger Menu & Platform Metadata
+    col_brand, col_title = st.columns([2.8, 5.2])
     with col_brand:
         st.markdown(get_brand_logo_card("header"), unsafe_allow_html=True)
+        # 3-Line Hamburger Menu Shortcut for Accessing Side Navbar Features
+        with st.popover("☰ 3-Line Menu (Features Navbar)", use_container_width=True, help="Click to open 3-line side navbar shortcut menu"):
+            st.markdown("### ☰ Feature Shortcuts Menu")
+            st.caption("Access side navbar features instantly:")
+            curr_feat_active = st.session_state.get("active_feature", PAGES[0])
+            for idx, p_name in enumerate(PAGES):
+                s_name = SHORT_TITLES[p_name]
+                icon = p_name.split()[0]
+                is_act = (curr_feat_active == p_name)
+                if st.button(
+                    f"{icon} {s_name}",
+                    use_container_width=True,
+                    type="primary" if is_act else "secondary",
+                    key=f"hamburger_menu_item_{idx}"
+                ):
+                    st.session_state["active_feature"] = p_name
+                    st.rerun()
+
     with col_title:
         st.markdown('<h1 style="font-size: 2.3rem; font-weight: 800; color: #F8FAFC; margin: 0;">StratixIQ</h1>', unsafe_allow_html=True)
         st.markdown('<p style="font-size: 0.95rem; font-weight: 700; color: #60A5FA; letter-spacing: 2px; margin: 0 0 0.5rem 0;">STRATEGY • INSIGHT • IMPACT</p>', unsafe_allow_html=True)
         st.markdown('<p style="font-size: 0.95rem; color: #94A3B8; margin: 0; line-height: 1.4;">Enterprise AI RAG Vector Pipeline • Multi-Agent Squad Builder • Algorithmic Fairness Auditor</p>', unsafe_allow_html=True)
-
-    st.divider()
-
-    # Interactive Feature Navbar Shortcut Bar
-    st.markdown("#### ⚡ Workspace Navbar Shortcuts (Click to switch feature view):")
-    nav_cols = st.columns(6)
-
-    active_feat = st.session_state.get("active_feature", PAGES[0])
-
-    for idx, page_name in enumerate(PAGES):
-        short_name = SHORT_TITLES[page_name]
-        icon = page_name.split()[0]
-        is_active = (active_feat == page_name)
-        if nav_cols[idx].button(
-            f"{icon} {short_name}",
-            use_container_width=True,
-            type="primary" if is_active else "secondary",
-            key=f"top_nav_shortcut_{idx}"
-        ):
-            switch_page(page_name)
-            st.rerun()
 
     st.divider()
 
