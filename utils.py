@@ -516,8 +516,8 @@ class VectorStoreManager:
                         cid = meta.get("candidate_id")
                         if cid and cid not in seen:
                             seen.add(cid)
-                            # Convert cosine distance to match confidence percentage
-                            similarity_score = max(0.5, 1.0 - float(dist))
+                            mult = feedback_manager.get_candidate_multiplier(cid)
+                            similarity_score = max(0.5, min(0.99, (1.0 - float(dist)) * mult))
                             results.append({
                                 "candidate_id": cid,
                                 "candidate_name": meta.get("candidate_name", "Indexed Candidate"),
@@ -528,6 +528,7 @@ class VectorStoreManager:
                             })
                         if len(results) >= top_k:
                             break
+                    results.sort(key=lambda x: x["cosine_score"], reverse=True)
                     return results
             except Exception as e:
                 print(f"[VectorStoreManager Query Warning]: {e}")
@@ -541,14 +542,15 @@ class VectorStoreManager:
             doc_text = (doc["candidate_name"] + " " + doc["role"] + " " + " ".join(doc["skills"]) + " " + doc["raw_text"]).lower()
             doc_words = set(doc_text.split())
             intersection = query_words.intersection(doc_words)
-            score = len(intersection) / max(len(query_words), 1)
+            mult = feedback_manager.get_candidate_multiplier(doc["candidate_id"])
+            score = (len(intersection) / max(len(query_words), 1)) * mult
             results.append({
                 "candidate_id": doc["candidate_id"],
                 "candidate_name": doc["candidate_name"],
                 "role": doc["role"],
                 "bandwidth_status": doc["bandwidth_status"],
                 "skills": doc["skills"],
-                "cosine_score": round(0.55 + min(0.40, score * 2.0), 3)
+                "cosine_score": round(min(0.99, 0.55 + min(0.40, score * 2.0)), 3)
             })
         results.sort(key=lambda x: x["cosine_score"], reverse=True)
         return results[:top_k]

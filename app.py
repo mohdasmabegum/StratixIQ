@@ -159,11 +159,10 @@ else: # System Default
 # CSS Custom Styling
 st.markdown(f"""
 <style>
-    /* Hide Streamlit Header, Toolbar, Footer & Manage App Button */
+    /* Preserve Streamlit sidebar toggle while hiding toolbar */
     #MainMenu {{visibility: hidden;}}
-    header {{visibility: hidden !important;}}
     footer {{visibility: hidden !important;}}
-    [data-testid="stHeader"] {{display: none !important;}}
+    [data-testid="stHeader"] {{background: transparent !important; z-index: 100 !important;}}
     [data-testid="stToolbar"] {{display: none !important;}}
     [data-testid="stDecoration"] {{display: none !important;}}
     [data-testid="stStatusWidget"] {{display: none !important;}}
@@ -284,6 +283,11 @@ st.markdown(f"""
         box-shadow: 0 -8px 25px rgba(0, 0, 0, 0.4);
     }}
 
+    /* Sidebar bottom padding to prevent fixed footer overlap */
+    section[data-testid="stSidebar"] {{
+        padding-bottom: 90px !important;
+    }}
+
     /* Ensure bottom spacing so scrollable content doesn't get covered */
     .main .block-container {{
         padding-bottom: 90px !important;
@@ -310,10 +314,6 @@ if not st.session_state["splash_done"]:
         if st.button("🚀 Enter StratixIQ Workspace", type="primary", use_container_width=True):
             st.session_state["splash_done"] = True
             st.rerun()
-
-    time.sleep(2.0)
-    st.session_state["splash_done"] = True
-    st.rerun()
 
 else:
     # Check Backend API Health Connection
@@ -483,9 +483,6 @@ else:
 
         if st.button("🚀 Run Semantic Talent Search & Explainable Match Audit", type="primary", key="t1_search_btn"):
             if project_desc.strip():
-                st.divider()
-                st.markdown("### 🏆 Top Candidate Shortlist, Explainable AI Audit & Gap Remediation")
-                
                 matches = []
                 if backend_online:
                     try:
@@ -530,63 +527,68 @@ else:
                                 "week_2": "Build hands-on integration prototype."
                             })
                         })
-
-                if not matches:
-                    st.warning("No candidates matched the selected availability filter.")
-                else:
-                    for idx, match in enumerate(matches):
-                        status_class = "badge-avail"
-                        if "Assigned" in match["bandwidth_status"]:
-                            status_class = "badge-assigned"
-                        elif "Part-time" in match["bandwidth_status"]:
-                            status_class = "badge-part"
-                            
-                        with st.container(border=True):
-                            c1, c2 = st.columns([3.5, 1.2])
-                            with c1:
-                                st.markdown(f"### #{idx+1} {match['name']} - *{match['role']}*")
-                                st.markdown(f'<span class="{status_class}">{match["bandwidth_status"]}</span>', unsafe_allow_html=True)
-                            with c2:
-                                st.metric(label="Match Confidence", value=f"{match['match_percentage']}%")
-                                
-                            st.markdown(f"**Verified Matching Skills:** {', '.join(match['verified_strengths'])}")
-                            if match.get('skill_gaps'):
-                                st.markdown(f"**Potential Skill Gaps:** {', '.join(match['skill_gaps'])}")
-                            
-                            st.info(f"**Strategic Deployment Rationale:** {match['deployment_rationale']}")
-                            
-                            xai = match.get("explainable_ai_breakdown", {})
-                            st.markdown('<div class="xai-box">', unsafe_allow_html=True)
-                            st.markdown("#### 📊 Explainable AI Decision Audit Trail")
-                            col_x1, col_x2, col_x3 = st.columns(3)
-                            with col_x1:
-                                st.caption("Core Tech Stack Weight")
-                                st.progress(int(xai.get("core_tech_stack_weight", 45)) / 100.0)
-                                st.write(f"**{xai.get('core_tech_stack_weight', 45)}%**")
-                            with col_x2:
-                                st.caption("Experience Depth Weight")
-                                st.progress(int(xai.get("experience_depth_weight", 30)) / 100.0)
-                                st.write(f"**{xai.get('experience_depth_weight', 30)}%**")
-                            with col_x3:
-                                st.caption("Availability Timeline Weight")
-                                st.progress(int(xai.get("availability_timeline_weight", 25)) / 100.0)
-                                st.write(f"**{xai.get('availability_timeline_weight', 25)}%**")
-                            st.markdown('</div>', unsafe_allow_html=True)
-
-                            upskill = match.get("upskilling_path", {})
-                            st.markdown('<div class="upskill-box">', unsafe_allow_html=True)
-                            st.markdown("#### 🎯 Automated 2-Week Skill Remediation Path")
-                            st.markdown(f"**Week 1 (Foundational Remediation):** {upskill.get('week_1')}")
-                            st.markdown(f"**Week 2 (Hands-on Sprint Readiness):** {upskill.get('week_2')}")
-                            st.markdown('</div>', unsafe_allow_html=True)
-                            
-                            st.divider()
-                            if st.button(f"⚡ Deploy {match['name']} to Sprint", key=f"deploy_{match['id']}"):
-                                st.session_state["deploy_modal_candidate"] = match
-                                st.toast(f"🎉 Assigned {match['name']} to sprint deployment!", icon="🚀")
-                                st.rerun()
+                st.session_state["t1_matches"] = matches
             else:
                 st.error("Please enter a project requirement description to run semantic matching.")
+
+        current_matches = st.session_state.get("t1_matches")
+        if current_matches is not None:
+            if not current_matches:
+                st.warning("No candidates matched the selected availability filter.")
+            else:
+                st.divider()
+                st.markdown("### 🏆 Top Candidate Shortlist, Explainable AI Audit & Gap Remediation")
+                for idx, match in enumerate(current_matches):
+                    status_class = "badge-avail"
+                    if "Assigned" in match["bandwidth_status"]:
+                        status_class = "badge-assigned"
+                    elif "Part-time" in match["bandwidth_status"]:
+                        status_class = "badge-part"
+                        
+                    with st.container(border=True):
+                        c1, c2 = st.columns([3.5, 1.2])
+                        with c1:
+                            st.markdown(f"### #{idx+1} {match['name']} - *{match['role']}*")
+                            st.markdown(f'<span class="{status_class}">{match["bandwidth_status"]}</span>', unsafe_allow_html=True)
+                        with c2:
+                            st.metric(label="Match Confidence", value=f"{match['match_percentage']}%")
+                            
+                        st.markdown(f"**Verified Matching Skills:** {', '.join(match['verified_strengths'])}")
+                        if match.get('skill_gaps'):
+                            st.markdown(f"**Potential Skill Gaps:** {', '.join(match['skill_gaps'])}")
+                        
+                        st.info(f"**Strategic Deployment Rationale:** {match['deployment_rationale']}")
+                        
+                        xai = match.get("explainable_ai_breakdown", {})
+                        st.markdown('<div class="xai-box">', unsafe_allow_html=True)
+                        st.markdown("#### 📊 Explainable AI Decision Audit Trail")
+                        col_x1, col_x2, col_x3 = st.columns(3)
+                        with col_x1:
+                            st.caption("Core Tech Stack Weight")
+                            st.progress(int(xai.get("core_tech_stack_weight", 45)) / 100.0)
+                            st.write(f"**{xai.get('core_tech_stack_weight', 45)}%**")
+                        with col_x2:
+                            st.caption("Experience Depth Weight")
+                            st.progress(int(xai.get("experience_depth_weight", 30)) / 100.0)
+                            st.write(f"**{xai.get('experience_depth_weight', 30)}%**")
+                        with col_x3:
+                            st.caption("Availability Timeline Weight")
+                            st.progress(int(xai.get("availability_timeline_weight", 25)) / 100.0)
+                            st.write(f"**{xai.get('availability_timeline_weight', 25)}%**")
+                        st.markdown('</div>', unsafe_allow_html=True)
+
+                        upskill = match.get("upskilling_path", {})
+                        st.markdown('<div class="upskill-box">', unsafe_allow_html=True)
+                        st.markdown("#### 🎯 Automated 2-Week Skill Remediation Path")
+                        st.markdown(f"**Week 1 (Foundational Remediation):** {upskill.get('week_1')}")
+                        st.markdown(f"**Week 2 (Hands-on Sprint Readiness):** {upskill.get('week_2')}")
+                        st.markdown('</div>', unsafe_allow_html=True)
+                        
+                        st.divider()
+                        if st.button(f"⚡ Deploy {match['name']} to Sprint", key=f"deploy_{match['id']}"):
+                            st.session_state["deploy_modal_candidate"] = match
+                            st.toast(f"🎉 Assigned {match['name']} to sprint deployment!", icon="🚀")
+                            st.rerun()
 
         if st.session_state.get("deploy_modal_candidate"):
             dep_cand = st.session_state["deploy_modal_candidate"]
@@ -631,32 +633,38 @@ else:
                     from utils import squad_assembler, vector_store, llm_manager
                     squad_data = squad_assembler.decompose_and_assemble(squad_scope, vector_store, llm_manager)
 
-                st.divider()
-                st.markdown("### 🚀 Assembled Cross-Functional Team Roster")
-                
-                m1, m2, m3 = st.columns(3)
-                with m1:
-                    st.metric("Total Squad Members", f"{squad_data['squad_size']} Engineers")
-                with m2:
-                    st.metric("Squad Synergy Score", f"{squad_data['squad_synergy_score']}%")
-                with m3:
-                    st.metric("Skill Balance Index", f"{squad_data['skill_balance_index']}%")
+                st.session_state["t2_squad_data"] = squad_data
+            else:
+                st.error("Please enter a project scope to assemble squad.")
 
-                st.markdown("**Unique Tech Skills Covered Across Squad:**")
-                skills_tags = "".join([f'<span style="background-color: rgba(16, 185, 129, 0.2); color: #34D399; padding: 0.2rem 0.6rem; border-radius: 0.375rem; font-size: 0.8rem; font-weight: 600; margin-right: 0.4rem; margin-bottom: 0.4rem; display: inline-block;">{s}</span>' for s in squad_data['unique_skills_covered']])
-                st.markdown(skills_tags, unsafe_allow_html=True)
-                st.divider()
+        curr_squad_data = st.session_state.get("t2_squad_data")
+        if curr_squad_data:
+            st.divider()
+            st.markdown("### 🚀 Assembled Cross-Functional Team Roster")
+            
+            m1, m2, m3 = st.columns(3)
+            with m1:
+                st.metric("Total Squad Members", f"{curr_squad_data['squad_size']} Engineers")
+            with m2:
+                st.metric("Squad Synergy Score", f"{curr_squad_data['squad_synergy_score']}%")
+            with m3:
+                st.metric("Skill Balance Index", f"{curr_squad_data['skill_balance_index']}%")
 
-                for member in squad_data["squad_roster"]:
-                    with st.container(border=True):
-                        st.markdown(f"#### 👤 {member['role_title']} → **{member['candidate_name']}** ({member['current_role']})")
-                        st.markdown(f"**Match Confidence:** `{member['match_confidence']}%` | **Status:** `{member['bandwidth_status']}`")
-                        st.markdown(f"**Matching Skills:** {', '.join(member['matching_skills'])}")
-                        st.info(f"**Role Fit Rationale:** {member['role_fit_rationale']}")
+            st.markdown("**Unique Tech Skills Covered Across Squad:**")
+            skills_tags = "".join([f'<span style="background-color: rgba(16, 185, 129, 0.2); color: #34D399; padding: 0.2rem 0.6rem; border-radius: 0.375rem; font-size: 0.8rem; font-weight: 600; margin-right: 0.4rem; margin-bottom: 0.4rem; display: inline-block;">{s}</span>' for s in curr_squad_data['unique_skills_covered']])
+            st.markdown(skills_tags, unsafe_allow_html=True)
+            st.divider()
 
-                if st.button("⚡ Deploy Entire Squad to Enterprise Sprint", key="deploy_squad_btn", type="primary"):
-                    st.toast(f"🎉 Deployed {squad_data['squad_size']} team members to sprint!", icon="🚀")
-                    st.success(f"✅ **Squad Deployment Activated**: All {squad_data['squad_size']} team members notified!")
+            for member in curr_squad_data["squad_roster"]:
+                with st.container(border=True):
+                    st.markdown(f"#### 👤 {member['role_title']} → **{member['candidate_name']}** ({member['current_role']})")
+                    st.markdown(f"**Match Confidence:** `{member['match_confidence']}%` | **Status:** `{member['bandwidth_status']}`")
+                    st.markdown(f"**Matching Skills:** {', '.join(member['matching_skills'])}")
+                    st.info(f"**Role Fit Rationale:** {member['role_fit_rationale']}")
+
+            if st.button("⚡ Deploy Entire Squad to Enterprise Sprint", key="deploy_squad_btn", type="primary"):
+                st.toast(f"🎉 Deployed {curr_squad_data['squad_size']} team members to sprint!", icon="🚀")
+                st.success(f"✅ **Squad Deployment Activated**: All {curr_squad_data['squad_size']} team members notified!")
 
     # ==========================================
     # PAGE 3: TALENT INGESTION & ROSTER HUB
@@ -815,8 +823,13 @@ else:
                 from utils import career_auditor
                 audit_res = career_auditor.generate_career_audit(sel_cand_name, c_role, c_skills, sel_target_role)
 
+            st.session_state["t4_audit_res"] = (sel_cand_name, sel_target_role, audit_res)
+
+        curr_audit = st.session_state.get("t4_audit_res")
+        if curr_audit:
+            aud_cand_name, aud_target_role, audit_res = curr_audit
             st.divider()
-            st.markdown(f"### 🏆 Career Growth Audit: **{sel_cand_name}** → `{sel_target_role}`")
+            st.markdown(f"### 🏆 Career Growth Audit: **{aud_cand_name}** → `{aud_target_role}`")
             
             sc1, sc2 = st.columns([1.5, 3])
             with sc1:
