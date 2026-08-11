@@ -482,8 +482,9 @@ else:
                     -webkit-backdrop-filter: blur(10px);
                     z-index: 998;
                     opacity: 0;
+                    visibility: hidden;
                     pointer-events: none;
-                    transition: opacity 0.3s ease-in-out;
+                    transition: opacity 0.25s ease-in-out, visibility 0.25s ease-in-out;
                 `;
                 parentDoc.body.appendChild(overlay);
 
@@ -496,23 +497,29 @@ else:
             }
 
             function updateOverlay() {
-                const isExpanded = sidebar.getAttribute('aria-expanded') === 'true' || 
-                                   sidebar.offsetWidth > 60;
-                if (isExpanded) {
+                const expandBtn = parentDoc.querySelector('[data-testid="stSidebarExpandButton"]');
+                const ariaExpanded = sidebar.getAttribute('aria-expanded');
+                
+                // If expandBtn exists or aria-expanded is false, sidebar is CLOSED
+                const isClosed = (expandBtn !== null) || (ariaExpanded === 'false');
+                
+                if (!isClosed) {
                     overlay.style.opacity = '1';
+                    overlay.style.visibility = 'visible';
                     overlay.style.pointerEvents = 'auto';
                 } else {
                     overlay.style.opacity = '0';
+                    overlay.style.visibility = 'hidden';
                     overlay.style.pointerEvents = 'none';
                 }
             }
 
             updateOverlay();
             const observer = new MutationObserver(updateOverlay);
-            observer.observe(sidebar, { attributes: true, attributeFilter: ['aria-expanded', 'style', 'class'] });
+            observer.observe(parentDoc.body, { childList: true, subtree: true, attributes: true });
         }
 
-        setTimeout(initSidebarOverlay, 200);
+        setTimeout(initSidebarOverlay, 150);
     </script>
     """, height=0)
 
