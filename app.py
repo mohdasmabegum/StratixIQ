@@ -283,9 +283,14 @@ st.markdown(f"""
         box-shadow: 0 -8px 25px rgba(0, 0, 0, 0.4);
     }}
 
-    /* Sidebar bottom padding to prevent fixed footer overlap */
+    /* Sliding Side Navbar Styling */
     section[data-testid="stSidebar"] {{
+        background: linear-gradient(180deg, rgba(15, 23, 42, 0.98), rgba(30, 41, 59, 0.98)) !important;
+        border-right: 1px solid rgba(255, 255, 255, 0.14) !important;
+        box-shadow: 12px 0 35px rgba(0, 0, 0, 0.5) !important;
+        backdrop-filter: blur(16px) !important;
         padding-bottom: 90px !important;
+        transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1) !important;
     }}
 
     /* Ensure bottom spacing so scrollable content doesn't get covered */
@@ -412,23 +417,22 @@ else:
     # Main App Header with Top-Left 3-Line Hamburger Menu, Brand Logo & Metadata
     col_menu, col_brand, col_title = st.columns([1.8, 2.7, 5.5])
     with col_menu:
-        # 3-Line Hamburger Menu Shortcut Button on Top Left of Screen
-        with st.popover("☰ 3-Line Menu", use_container_width=True, help="Click to open 3-line side navbar shortcut menu"):
-            st.markdown("### ☰ Feature Shortcuts Menu")
-            st.caption("Access all side navbar features instantly:")
-            curr_feat_active = st.session_state.get("active_feature", PAGES[0])
-            for idx, p_name in enumerate(PAGES):
-                s_name = SHORT_TITLES[p_name]
-                icon = p_name.split()[0]
-                is_act = (curr_feat_active == p_name)
-                if st.button(
-                    f"{icon} {s_name}",
-                    use_container_width=True,
-                    type="primary" if is_act else "secondary",
-                    key=f"top_left_hamburger_{idx}"
-                ):
-                    st.session_state["active_feature"] = p_name
-                    st.rerun()
+        # 3-Line Hamburger Menu Button to open Sliding Side Navbar
+        if st.button("☰ 3-Line Menu", key="top_left_sidebar_toggle", use_container_width=True, help="Click to open sliding side navbar"):
+            import streamlit.components.v1 as components
+            components.html("""
+            <script>
+                const parentDoc = window.parent.document;
+                const expandBtn = parentDoc.querySelector('[data-testid="stSidebarExpandButton"] button');
+                const collapseBtn = parentDoc.querySelector('[data-testid="stSidebarCollapseButton"] button');
+                if (expandBtn) {
+                    expandBtn.click();
+                } else if (collapseBtn) {
+                    collapseBtn.click();
+                }
+            </script>
+            """, height=0)
+            st.toast("⚡ Sliding Side Navbar Opened!", icon="📌")
 
     with col_brand:
         st.markdown(get_brand_logo_card("header"), unsafe_allow_html=True)
