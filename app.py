@@ -205,6 +205,31 @@ st.markdown(f"""
         box-shadow: 0 14px 28px rgba(59, 130, 246, 0.5) !important;
     }}
 
+    /* Simple 3-Line Hamburger Icon Button */
+    button[key="top_left_sidebar_toggle"],
+    div[data-testid="stColumn"] button[key="top_left_sidebar_toggle"] {{
+        width: 48px !important;
+        height: 48px !important;
+        padding: 0 !important;
+        font-size: 1.6rem !important;
+        font-weight: 900 !important;
+        border-radius: 0.75rem !important;
+        background: linear-gradient(135deg, rgba(30, 41, 59, 0.9), rgba(15, 23, 42, 0.9)) !important;
+        border: 1px solid rgba(255, 255, 255, 0.18) !important;
+        color: #60A5FA !important;
+        box-shadow: 0 4px 18px rgba(59, 130, 246, 0.3) !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        min-width: 48px !important;
+    }}
+    button[key="top_left_sidebar_toggle"]:hover {{
+        background: linear-gradient(135deg, #3B82F6, #8B5CF6) !important;
+        color: #FFFFFF !important;
+        transform: scale(1.06) !important;
+        box-shadow: 0 6px 22px rgba(59, 130, 246, 0.5) !important;
+    }}
+
     .main-header {{
         font-size: 2.3rem;
         font-weight: 800;
@@ -340,7 +365,6 @@ else:
     with st.sidebar:
         # Sidebar Header with Glowing Brand Logo Card
         st.markdown(get_brand_logo_card("sidebar"), unsafe_allow_html=True)
-        st.markdown("<p style='text-align: center; color: #38BDF8; font-weight: 800; font-size: 0.75rem; letter-spacing: 2px; margin-top: -0.4rem; margin-bottom: 0.5rem; text-transform: uppercase;'>⚡ MOVABLE SIDE NAVBAR</p>", unsafe_allow_html=True)
         st.divider()
 
         # Side Navbar Feature Selector Buttons
@@ -414,11 +438,11 @@ else:
         else:
             st.info("Direct Local Inference Engine Active")
 
-    # Main App Header with Top-Left 3-Line Hamburger Menu, Brand Logo & Metadata
-    col_menu, col_brand, col_title = st.columns([1.8, 2.7, 5.5])
+    # Main App Header with Top-Left Simple 3-Line Icon Button, Brand Logo & Metadata
+    col_menu, col_brand, col_title = st.columns([0.8, 2.7, 6.5])
     with col_menu:
-        # 3-Line Hamburger Menu Button to open Sliding Side Navbar
-        if st.button("☰ 3-Line Menu", key="top_left_sidebar_toggle", use_container_width=True, help="Click to open sliding side navbar"):
+        # Simple 3-Line Icon Button (No rectangle label)
+        if st.button("☰", key="top_left_sidebar_toggle", help="Toggle sliding side navbar"):
             import streamlit.components.v1 as components
             components.html("""
             <script>
@@ -432,7 +456,65 @@ else:
                 }
             </script>
             """, height=0)
-            st.toast("⚡ Sliding Side Navbar Opened!", icon="📌")
+
+    # Inject backdrop blur overlay & tap-outside to close sidebar
+    import streamlit.components.v1 as components
+    components.html("""
+    <script>
+        const parentDoc = window.parent.document;
+        
+        function initSidebarOverlay() {
+            const sidebar = parentDoc.querySelector('section[data-testid="stSidebar"]');
+            if (!sidebar) return;
+
+            let overlay = parentDoc.querySelector('#stratix-sidebar-overlay');
+            if (!overlay) {
+                overlay = parentDoc.createElement('div');
+                overlay.id = 'stratix-sidebar-overlay';
+                overlay.style.cssText = `
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 100vw;
+                    height: 100vh;
+                    background: rgba(15, 23, 42, 0.65);
+                    backdrop-filter: blur(10px);
+                    -webkit-backdrop-filter: blur(10px);
+                    z-index: 998;
+                    opacity: 0;
+                    pointer-events: none;
+                    transition: opacity 0.3s ease-in-out;
+                `;
+                parentDoc.body.appendChild(overlay);
+
+                overlay.addEventListener('click', () => {
+                    const collapseBtn = parentDoc.querySelector('[data-testid="stSidebarCollapseButton"] button');
+                    if (collapseBtn) {
+                        collapseBtn.click();
+                    }
+                });
+            }
+
+            function updateOverlay() {
+                const isExpanded = sidebar.getAttribute('aria-expanded') === 'true' || 
+                                   sidebar.offsetWidth > 60;
+                if (isExpanded) {
+                    overlay.style.opacity = '1';
+                    overlay.style.pointerEvents = 'auto';
+                } else {
+                    overlay.style.opacity = '0';
+                    overlay.style.pointerEvents = 'none';
+                }
+            }
+
+            updateOverlay();
+            const observer = new MutationObserver(updateOverlay);
+            observer.observe(sidebar, { attributes: true, attributeFilter: ['aria-expanded', 'style', 'class'] });
+        }
+
+        setTimeout(initSidebarOverlay, 200);
+    </script>
+    """, height=0)
 
     with col_brand:
         st.markdown(get_brand_logo_card("header"), unsafe_allow_html=True)
@@ -450,14 +532,14 @@ else:
     # PAGE 1: SINGLE CANDIDATE MATCHING ENGINE
     # ==========================================
     if active_page == PAGES[0]:
-        c_p0_head, c_p0_back = st.columns([7.6, 2.4])
-        with c_p0_head:
-            st.subheader("🎯 Match Engineering Requirements to Internal Talent Pool")
-            st.caption("Perform semantic vector retrieval, explainable AI feature weighting, and automated gap remediation.")
+        c_p0_back, c_p0_head = st.columns([2.4, 7.6])
         with c_p0_back:
             if st.button("⬅️ Back to Main", key="back_btn_p0", type="secondary", use_container_width=True):
                 st.session_state["active_feature"] = PAGES[0]
                 st.rerun()
+        with c_p0_head:
+            st.subheader("🎯 Match Engineering Requirements to Internal Talent Pool")
+            st.caption("Perform semantic vector retrieval, explainable AI feature weighting, and automated gap remediation.")
         
         st.markdown("**Sample Project Prompts:**")
         col_p1, col_p2, col_p3 = st.columns(3)
@@ -606,14 +688,14 @@ else:
     # PAGE 2: MULTI-AGENT COLLABORATIVE SQUAD BUILDER
     # ==========================================
     elif active_page == PAGES[1]:
-        c_p1_head, c_p1_back = st.columns([7.6, 2.4])
-        with c_p1_head:
-            st.subheader("🧩 Multi-Agent Cross-Functional Squad Assembler")
-            st.caption("Deconstruct complex project requirements into distinct technical role slots, query vector store, and assemble non-redundant team rosters.")
+        c_p1_back, c_p1_head = st.columns([2.4, 7.6])
         with c_p1_back:
             if st.button("⬅️ Back to Main", key="back_btn_p1", type="secondary", use_container_width=True):
                 st.session_state["active_feature"] = PAGES[0]
                 st.rerun()
+        with c_p1_head:
+            st.subheader("🧩 Multi-Agent Cross-Functional Squad Assembler")
+            st.caption("Deconstruct complex project requirements into distinct technical role slots, query vector store, and assemble non-redundant team rosters.")
         
         squad_scope = st.text_area(
             "Enter Full Project Scope for Team Assembly",
@@ -674,13 +756,13 @@ else:
     # PAGE 3: TALENT INGESTION & ROSTER HUB
     # ==========================================
     elif active_page == PAGES[2]:
-        c_p2_head, c_p2_back = st.columns([7.6, 2.4])
-        with c_p2_head:
-            st.subheader("📥 Ingest Resume & Explore Internal Talent Pool Roster Matrix")
+        c_p2_back, c_p2_head = st.columns([2.4, 7.6])
         with c_p2_back:
             if st.button("⬅️ Back to Main", key="back_btn_p2", type="secondary", use_container_width=True):
                 st.session_state["active_feature"] = PAGES[0]
                 st.rerun()
+        with c_p2_head:
+            st.subheader("📥 Ingest Resume & Explore Internal Talent Pool Roster Matrix")
         
         with st.form("t3_upload_form", clear_on_submit=True):
             c1, c2 = st.columns(2)
@@ -781,14 +863,14 @@ else:
     # PAGE 4: CANDIDATE CAREER GROWTH AUDIT
     # ==========================================
     elif active_page == PAGES[3]:
-        c_p3_head, c_p3_back = st.columns([7.6, 2.4])
-        with c_p3_head:
-            st.subheader("📈 Candidate Career Growth & Promotion Skill-Gap Auditor")
-            st.caption("Empower employees to audit their profile against target senior enterprise roles and generate 4-week promotion readiness roadmaps.")
+        c_p3_back, c_p3_head = st.columns([2.4, 7.6])
         with c_p3_back:
             if st.button("⬅️ Back to Main", key="back_btn_p3", type="secondary", use_container_width=True):
                 st.session_state["active_feature"] = PAGES[0]
                 st.rerun()
+        with c_p3_head:
+            st.subheader("📈 Candidate Career Growth & Promotion Skill-Gap Auditor")
+            st.caption("Empower employees to audit their profile against target senior enterprise roles and generate 4-week promotion readiness roadmaps.")
         
         from utils import INITIAL_TALENT_POOL
         all_cand_names = [c["name"] for c in INITIAL_TALENT_POOL]
@@ -854,14 +936,14 @@ else:
     # PAGE 5: HISTORICAL PROJECT PERFORMANCE FEEDBACK LOOP
     # ==========================================
     elif active_page == PAGES[4]:
-        c_p4_head, c_p4_back = st.columns([7.6, 2.4])
-        with c_p4_head:
-            st.subheader("⭐ Historical Project Performance & RL Feedback Loop")
-            st.caption("Submit manager ratings (1-5 stars) on completed sprint assignments to dynamically weight vector search score multipliers.")
+        c_p4_back, c_p4_head = st.columns([2.4, 7.6])
         with c_p4_back:
             if st.button("⬅️ Back to Main", key="back_btn_p4", type="secondary", use_container_width=True):
                 st.session_state["active_feature"] = PAGES[0]
                 st.rerun()
+        with c_p4_head:
+            st.subheader("⭐ Historical Project Performance & RL Feedback Loop")
+            st.caption("Submit manager ratings (1-5 stars) on completed sprint assignments to dynamically weight vector search score multipliers.")
         
         from utils import INITIAL_TALENT_POOL
         all_cand_ids = [c["id"] for c in INITIAL_TALENT_POOL]
@@ -914,13 +996,13 @@ else:
     # PAGE 6: ENTERPRISE KNOWLEDGE GRAPH & HR AI FAIRNESS AUDITOR
     # ==========================================
     elif active_page == PAGES[5]:
-        c_p5_head, c_p5_back = st.columns([7.6, 2.4])
-        with c_p5_head:
-            st.subheader("🛡️ Enterprise Knowledge Graph & HR AI Algorithmic Fairness Auditor")
+        c_p5_back, c_p5_head = st.columns([2.4, 7.6])
         with c_p5_back:
             if st.button("⬅️ Back to Main", key="back_btn_p5", type="secondary", use_container_width=True):
                 st.session_state["active_feature"] = PAGES[0]
                 st.rerun()
+        with c_p5_head:
+            st.subheader("🛡️ Enterprise Knowledge Graph & HR AI Algorithmic Fairness Auditor")
         
         kg_col, f_col = st.columns(2)
         
