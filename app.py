@@ -367,10 +367,6 @@ else:
         st.markdown(get_brand_logo_card("sidebar"), unsafe_allow_html=True)
         st.divider()
 
-        # Side Navbar Feature Selector Buttons
-        st.subheader("📌 Feature Shortcuts")
-        st.caption("Click any item below to switch feature view immediately:")
-
         curr_feat = st.session_state.get("active_feature", PAGES[0])
 
         for idx, page_name in enumerate(PAGES):
@@ -381,19 +377,8 @@ else:
             btn_type = "primary" if is_active else "secondary"
             if st.button(f"{icon} {short}", key=f"side_nav_btn_{idx}", type=btn_type, use_container_width=True):
                 st.session_state["active_feature"] = page_name
+                st.session_state["auto_close_sidebar"] = True
                 st.rerun()
-
-        st.divider()
-
-        curr_idx = PAGES.index(curr_feat) if curr_feat in PAGES else 0
-        sb_select = st.selectbox(
-            "Quick Feature Dropdown",
-            options=PAGES,
-            index=curr_idx
-        )
-        if sb_select != st.session_state.get("active_feature"):
-            st.session_state["active_feature"] = sb_select
-            st.rerun()
 
         st.divider()
 
@@ -431,12 +416,19 @@ else:
             except Exception:
                 st.session_state["llm_provider"] = provider_option
 
-        st.divider()
-        st.metric("Total Indexed Talent", f"{indexed_count} Profiles")
-        if backend_online:
-            st.success("FastAPI Backend: Online & Connected")
-        else:
-            st.info("Direct Local Inference Engine Active")
+    # Auto-close sidebar on feature selection
+    if st.session_state.get("auto_close_sidebar"):
+        st.session_state["auto_close_sidebar"] = False
+        import streamlit.components.v1 as components
+        components.html("""
+        <script>
+            const parentDoc = window.parent.document;
+            const collapseBtn = parentDoc.querySelector('[data-testid="stSidebarCollapseButton"] button');
+            if (collapseBtn) {
+                collapseBtn.click();
+            }
+        </script>
+        """, height=0)
 
     # Main App Header with Top-Left Simple 3-Line Icon Button, Brand Logo & Metadata
     col_menu, col_brand, col_title = st.columns([0.8, 2.7, 6.5])
