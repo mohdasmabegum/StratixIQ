@@ -1082,6 +1082,10 @@ else:
 
         from utils import vector_ats_manager
         
+        if "pending_selected_job" in st.session_state:
+            pending_title = st.session_state.pop("pending_selected_job")
+            st.session_state["ats_active_job_select"] = pending_title
+
         st.markdown("### 📢 Select Active Company Job Offer or Internship for Resume ATS Screening")
         job_titles = [j["title"] for j in vector_ats_manager.job_offers_catalog]
         
@@ -1151,7 +1155,7 @@ else:
                             raw_jd_text=jd_text_payload
                         )
                         
-                        st.session_state["ats_active_job_select"] = final_title
+                        st.session_state["pending_selected_job"] = final_title
                         st.toast(f"⚡ Analyzed JD & Published '{final_title}'!", icon="🚀")
                         st.success(f"Successfully published **{final_title}** ({new_j_type}) into ATS Opportunity Catalog!")
                         st.rerun()
