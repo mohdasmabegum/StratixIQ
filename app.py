@@ -1114,20 +1114,31 @@ else:
                     )
                     new_j_dept = st.selectbox("Department *", ["Healthcare & Medical AI", "Cloud & Infrastructure Operations", "Financial Services & Analytics", "Enterprise SaaS & Mobile Products", "Engineering"])
                 with cj2:
-                    new_j_skills = st.text_input("Required Tech Skills (Comma-separated) *", placeholder="e.g. Python, FastAPI, PyTorch, React, PostgreSQL, Docker")
-                    new_j_desc = st.text_area("Role Description & Scope", placeholder="Details of project responsibilities, learning roadmap, or requirements...")
+                    new_j_skills = st.text_input("Required Tech Skills (Comma-separated)", placeholder="e.g. Python, FastAPI, PyTorch, React, PostgreSQL, Docker")
+                    new_j_desc = st.text_area("Role Summary & Notes", placeholder="Brief role overview...", height=80)
 
-                pub_job_btn = st.form_submit_button("📢 Publish Opportunity & Add to ATS Catalog ➔", type="primary")
+                new_j_raw_jd = st.text_area(
+                    "📄 Paste Complete Job Description (JD) for NLP Deconstruction & Sub-Requirements Parsing *",
+                    placeholder="Paste complete Job Description text here... e.g. We are seeking an engineer to build HIPAA-compliant PyTorch 3D medical image segmentation models, FastAPI async REST microservices, PostgreSQL schemas, and Docker deployments...",
+                    height=100
+                )
+
+                pub_job_btn = st.form_submit_button("⚡ Analyze JD with NLP, Extract Sub-Requirements & Publish Opportunity ➔", type="primary")
                 if pub_job_btn:
-                    if new_j_title.strip() and new_j_skills.strip():
+                    if new_j_title.strip() and (new_j_skills.strip() or new_j_raw_jd.strip()):
                         skills_lst = [s.strip() for s in new_j_skills.split(",") if s.strip()]
                         min_exp_val = 0 if ("Undergraduate" in new_j_type or "Fresher" in new_j_type or "Internship" in new_j_type) else (1 if "1-3" in new_j_type else 4)
-                        vector_ats_manager.save_job_offer(new_j_title.strip(), skills_lst, min_exp_val, new_j_desc.strip(), department=new_j_dept, job_type=new_j_type)
-                        st.toast(f"✅ Published opportunity '{new_j_title}'!", icon="🚀")
-                        st.success(f"Successfully published **{new_j_title}** ({new_j_type}) to ATS Catalog!")
+                        from utils import parse_job_description_nlp
+                        nlp_res = parse_job_description_nlp(new_j_raw_jd or new_j_desc or new_j_title)
+                        if not skills_lst:
+                            skills_lst = nlp_res["primary_tech_stack"]
+
+                        vector_ats_manager.save_job_offer(new_j_title.strip(), skills_lst, min_exp_val, new_j_desc.strip(), department=new_j_dept, job_type=new_j_type, raw_jd_text=new_j_raw_jd)
+                        st.toast(f"✅ Analyzed JD & Published '{new_j_title}'!", icon="⚡")
+                        st.success(f"Successfully published **{new_j_title}** ({new_j_type}) with NLP sub-requirements deconstruction!")
                         st.rerun()
                     else:
-                        st.error("Opportunity Title and Technical Skills are required.")
+                        st.error("Opportunity Title and Job Description / Skills are required.")
 
         with st.container(border=True):
             c_j_head, c_j_badge = st.columns([3.5, 1.2])
@@ -1146,6 +1157,24 @@ else:
 
             st.markdown(f"**Required Tech Stack:** `{', '.join(selected_job.get('required_skills', []))}`")
             st.caption(f"Job Scope: {selected_job.get('description', '')}")
+
+            # Display NLP Sub-Requirements Breakdown
+            nlp_sub = selected_job.get("nlp_subrequirements")
+            if not nlp_sub:
+                from utils import parse_job_description_nlp
+                nlp_sub = parse_job_description_nlp(selected_job.get('title', '') + ' ' + selected_job.get('description', '') + ' ' + ' '.join(selected_job.get('required_skills', [])))
+
+            st.markdown("#### ⚡ NLP Deconstructed Sub-Requirements (AI Resume Matching Matrix)")
+            n_col1, n_col2, n_col3 = st.columns(3)
+            with n_col1:
+                st.markdown("**⚙️ Tech Stack Sub-Reqs:**")
+                st.caption(", ".join(nlp_sub.get("primary_tech_stack", [])))
+            with n_col2:
+                st.markdown("**📐 Architecture Sub-Reqs:**")
+                st.caption(", ".join(nlp_sub.get("architectural_competencies", [])))
+            with n_col3:
+                st.markdown("**🛡️ Domain & Compliance Scope:**")
+                st.caption(", ".join(nlp_sub.get("domain_compliance_scope", [])))
 
         st.divider()
         with st.container(border=True):

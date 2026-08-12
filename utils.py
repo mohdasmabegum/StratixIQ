@@ -619,6 +619,46 @@ ACTIVE_DEPARTMENT_PROJECTS = [
 
 INITIAL_ATS_APPLICANTS = []
 
+def parse_job_description_nlp(jd_text: str) -> Dict[str, Any]:
+    text_lower = jd_text.lower()
+    
+    tech_vocab = {"python", "pytorch", "opencv", "fastapi", "postgresql", "aws", "react", "docker", "kubernetes", "typescript", "node.js", "kafka", "redis", "dicom", "sql", "hipaa", "terraform", "c++", "mlops", "langchain", "mongodb", "java", "golang"}
+    extracted_tech = [t.upper() if t in ["aws", "sql"] else t.title() for t in tech_vocab if t in text_lower]
+    if not extracted_tech:
+        extracted_tech = ["Python", "FastAPI", "Docker"]
+        
+    arch_keywords = {
+        "microservice": "Async Microservices Architecture",
+        "pipeline": "ETL & Deep Learning Data Pipelines",
+        "segmentation": "3D Medical Image Segmentation Models",
+        "async": "Async I/O Concurrency & REST Routing",
+        "infrastructure": "Infrastructure-as-Code Automation",
+        "database": "Relational & NoSQL Schema Design",
+        "analytics": "Real-Time Transactional Data Processing"
+    }
+    extracted_arch = [val for key, val in arch_keywords.items() if key in text_lower]
+    if not extracted_arch:
+        extracted_arch = ["REST API Endpoint Engineering", "Containerized Docker Deployments"]
+        
+    domain_scope = []
+    if any(k in text_lower for k in ["health", "dicom", "hipaa", "medical"]):
+        domain_scope.append("Healthcare Medical AI & HIPAA Compliance")
+    if any(k in text_lower for k in ["fintech", "transaction", "bank", "financial"]):
+        domain_scope.append("FinTech & Real-Time Financial Analytics")
+    if any(k in text_lower for k in ["cloud", "aws", "k8s", "kubernetes"]):
+        domain_scope.append("High-Availability Cloud Infrastructure")
+    if any(k in text_lower for k in ["saas", "web", "react"]):
+        domain_scope.append("Multi-Tenant Enterprise SaaS Portal")
+    if not domain_scope:
+        domain_scope = ["Enterprise AI Software Engineering"]
+        
+    return {
+        "primary_tech_stack": extracted_tech,
+        "architectural_competencies": extracted_arch,
+        "domain_compliance_scope": domain_scope,
+        "raw_jd_text": jd_text
+    }
+
 class VectorATSManager:
     def __init__(self):
         self.job_offers_catalog = list(ACTIVE_DEPARTMENT_PROJECTS)
@@ -632,9 +672,10 @@ class VectorATSManager:
                 return job
         return self.active_job_offer
 
-    def save_job_offer(self, title: str, required_skills: List[str], min_experience: int, description: str, department: str = "Engineering", job_type: str = "Full-Time Role"):
+    def save_job_offer(self, title: str, required_skills: List[str], min_experience: int, description: str, department: str = "Engineering", job_type: str = "Full-Time Role", raw_jd_text: str = ""):
+        nlp_breakdown = parse_job_description_nlp(raw_jd_text or (title + " " + description + " " + " ".join(required_skills)))
         exp_level_str = "Fresher (0 Yrs / Entry Level)" if min_experience == 0 else f"Experienced ({min_experience}+ Yrs)"
-        if "Internship" in job_type:
+        if "Internship" in job_type or "Undergraduate" in job_type:
             exp_level_str = "Graduate Internship (0 Yrs)"
 
         new_job = {
@@ -645,7 +686,8 @@ class VectorATSManager:
             "min_experience": min_experience,
             "experience_level": exp_level_str,
             "job_type": job_type,
-            "description": description
+            "description": description,
+            "nlp_subrequirements": nlp_breakdown
         }
         # Check if already exists
         existing = next((j for j in self.job_offers_catalog if j["title"].lower() == title.lower()), None)
@@ -655,6 +697,7 @@ class VectorATSManager:
             existing["experience_level"] = exp_level_str
             existing["job_type"] = job_type
             existing["description"] = description
+            existing["nlp_subrequirements"] = nlp_breakdown
             self.active_job_offer = existing
         else:
             self.job_offers_catalog.insert(0, new_job)
