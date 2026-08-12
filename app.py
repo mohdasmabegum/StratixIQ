@@ -96,6 +96,34 @@ if current_theme == "Light":
         background-color: #F8FAFC !important;
         color: #0F172A !important;
     }
+    p, span, label, div, h1, h2, h3, h4, h5, h6, .stMarkdown, .stText {
+        color: #0F172A !important;
+    }
+    .stCaption, caption, .stCaption p {
+        color: #475569 !important;
+    }
+    section[data-testid="stSidebar"] {
+        background: #FFFFFF !important;
+        border-right: 1px solid #E2E8F0 !important;
+        box-shadow: 4px 0 25px rgba(0, 0, 0, 0.08) !important;
+    }
+    section[data-testid="stSidebar"] p, 
+    section[data-testid="stSidebar"] label,
+    section[data-testid="stSidebar"] span,
+    section[data-testid="stSidebar"] h1,
+    section[data-testid="stSidebar"] h2,
+    section[data-testid="stSidebar"] h3 {
+        color: #0F172A !important;
+    }
+    div[data-baseweb="select"] > div, input, textarea {
+        background-color: #FFFFFF !important;
+        color: #0F172A !important;
+        border-color: #CBD5E1 !important;
+    }
+    div[data-baseweb="popover"], div[data-baseweb="menu"] {
+        background-color: #FFFFFF !important;
+        color: #0F172A !important;
+    }
     .metric-card {
         background-color: #FFFFFF !important;
         border: 1px solid #E2E8F0 !important;
@@ -105,11 +133,45 @@ if current_theme == "Light":
     .metric-card h3 { color: #0F172A !important; }
     .metric-card p { color: #475569 !important; }
     .metric-card strong { color: #2563EB !important; }
+    button[key="top_left_sidebar_toggle"] {
+        background: #FFFFFF !important;
+        border: 1px solid #CBD5E1 !important;
+        color: #2563EB !important;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08) !important;
+    }
     """
 elif current_theme == "Dark":
     theme_css = """
     body, .stApp {
         background-color: #0F172A !important;
+        color: #F8FAFC !important;
+    }
+    p, span, label, div, h1, h2, h3, h4, h5, h6, .stMarkdown, .stText {
+        color: #F8FAFC !important;
+    }
+    .stCaption, caption, .stCaption p {
+        color: #94A3B8 !important;
+    }
+    section[data-testid="stSidebar"] {
+        background: linear-gradient(180deg, rgba(15, 23, 42, 0.98), rgba(30, 41, 59, 0.98)) !important;
+        border-right: 1px solid rgba(255, 255, 255, 0.14) !important;
+        box-shadow: 12px 0 35px rgba(0, 0, 0, 0.5) !important;
+    }
+    section[data-testid="stSidebar"] p, 
+    section[data-testid="stSidebar"] label,
+    section[data-testid="stSidebar"] span,
+    section[data-testid="stSidebar"] h1,
+    section[data-testid="stSidebar"] h2,
+    section[data-testid="stSidebar"] h3 {
+        color: #F8FAFC !important;
+    }
+    div[data-baseweb="select"] > div, input, textarea {
+        background-color: rgba(30, 41, 59, 0.8) !important;
+        color: #F8FAFC !important;
+        border-color: rgba(255, 255, 255, 0.15) !important;
+    }
+    div[data-baseweb="popover"], div[data-baseweb="menu"] {
+        background-color: #1E293B !important;
         color: #F8FAFC !important;
     }
     .metric-card {
@@ -121,38 +183,26 @@ elif current_theme == "Dark":
     .metric-card h3 { color: #F8FAFC !important; }
     .metric-card p { color: #94A3B8 !important; }
     .metric-card strong { color: #60A5FA !important; }
+    button[key="top_left_sidebar_toggle"] {
+        background: linear-gradient(135deg, rgba(30, 41, 59, 0.9), rgba(15, 23, 42, 0.9)) !important;
+        border: 1px solid rgba(255, 255, 255, 0.18) !important;
+        color: #60A5FA !important;
+        box-shadow: 0 4px 18px rgba(59, 130, 246, 0.3) !important;
+    }
     """
 else: # System Default
     theme_css = """
     @media (prefers-color-scheme: light) {
-        body, .stApp {
-            background-color: #F8FAFC !important;
-            color: #0F172A !important;
-        }
-        .metric-card {
-            background-color: #FFFFFF !important;
-            border: 1px solid #E2E8F0 !important;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05) !important;
-            color: #0F172A !important;
-        }
-        .metric-card h3 { color: #0F172A !important; }
-        .metric-card p { color: #475569 !important; }
-        .metric-card strong { color: #2563EB !important; }
+        body, .stApp { background-color: #F8FAFC !important; color: #0F172A !important; }
+        p, span, label, div, h1, h2, h3, h4, h5, h6, .stMarkdown { color: #0F172A !important; }
+        .stCaption, caption { color: #475569 !important; }
+        .metric-card { background-color: #FFFFFF !important; border: 1px solid #E2E8F0 !important; color: #0F172A !important; }
     }
     @media (prefers-color-scheme: dark) {
-        body, .stApp {
-            background-color: #0F172A !important;
-            color: #F8FAFC !important;
-        }
-        .metric-card {
-            background-color: rgba(30, 41, 59, 0.75) !important;
-            border: 1px solid rgba(255, 255, 255, 0.12) !important;
-            box-shadow: 0 12px 30px rgba(59, 130, 246, 0.2) !important;
-            color: #F8FAFC !important;
-        }
-        .metric-card h3 { color: #F8FAFC !important; }
-        .metric-card p { color: #94A3B8 !important; }
-        .metric-card strong { color: #60A5FA !important; }
+        body, .stApp { background-color: #0F172A !important; color: #F8FAFC !important; }
+        p, span, label, div, h1, h2, h3, h4, h5, h6, .stMarkdown { color: #F8FAFC !important; }
+        .stCaption, caption { color: #94A3B8 !important; }
+        .metric-card { background-color: rgba(30, 41, 59, 0.75) !important; border: 1px solid rgba(255, 255, 255, 0.12) !important; color: #F8FAFC !important; }
     }
     """
 
@@ -214,20 +264,53 @@ st.markdown(f"""
         font-size: 1.6rem !important;
         font-weight: 900 !important;
         border-radius: 0.75rem !important;
-        background: linear-gradient(135deg, rgba(30, 41, 59, 0.9), rgba(15, 23, 42, 0.9)) !important;
-        border: 1px solid rgba(255, 255, 255, 0.18) !important;
-        color: #60A5FA !important;
-        box-shadow: 0 4px 18px rgba(59, 130, 246, 0.3) !important;
         display: flex !important;
         align-items: center !important;
         justify-content: center !important;
         min-width: 48px !important;
     }}
     button[key="top_left_sidebar_toggle"]:hover {{
+        transform: scale(1.08) !important;
+        box-shadow: 0 6px 22px rgba(59, 130, 246, 0.5) !important;
+    }}
+
+    /* Icon-Only Left Arrow Back Button */
+    button[key*="back_btn_p"],
+    div[data-testid="stColumn"] button[key*="back_btn_p"] {{
+        width: 44px !important;
+        height: 44px !important;
+        padding: 0 !important;
+        font-size: 1.4rem !important;
+        font-weight: 900 !important;
+        border-radius: 0.75rem !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        min-width: 44px !important;
+        background: linear-gradient(135deg, rgba(30, 41, 59, 0.8), rgba(15, 23, 42, 0.8)) !important;
+        color: #60A5FA !important;
+        border: 1px solid rgba(255, 255, 255, 0.15) !important;
+    }}
+    button[key*="back_btn_p"]:hover {{
         background: linear-gradient(135deg, #3B82F6, #8B5CF6) !important;
         color: #FFFFFF !important;
-        transform: scale(1.06) !important;
-        box-shadow: 0 6px 22px rgba(59, 130, 246, 0.5) !important;
+        transform: translateX(-3px) scale(1.05) !important;
+    }}
+
+    /* Interactive Animated Feature Hub Cards */
+    .feature-hub-card {{
+        background: linear-gradient(135deg, rgba(30, 41, 59, 0.85), rgba(15, 23, 42, 0.85));
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 1.25rem;
+        padding: 1.5rem;
+        transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+        margin-bottom: 1rem;
+        cursor: pointer;
+    }}
+    .feature-hub-card:hover {{
+        transform: translateY(-6px) scale(1.02);
+        border-color: rgba(96, 165, 250, 0.6) !important;
+        box-shadow: 0 18px 36px -6px rgba(59, 130, 246, 0.35) !important;
     }}
 
     .main-header {{
@@ -439,8 +522,8 @@ else:
             components.html("""
             <script>
                 const parentDoc = window.parent.document;
-                const expandBtn = parentDoc.querySelector('[data-testid="stSidebarExpandButton"] button');
-                const collapseBtn = parentDoc.querySelector('[data-testid="stSidebarCollapseButton"] button');
+                const expandBtn = parentDoc.querySelector('[data-testid="stSidebarExpandButton"] button') || parentDoc.querySelector('[data-testid="stSidebarExpandButton"]');
+                const collapseBtn = parentDoc.querySelector('[data-testid="stSidebarCollapseButton"] button') || parentDoc.querySelector('[data-testid="stSidebarCollapseButton"]');
                 if (expandBtn) {
                     expandBtn.click();
                 } else if (collapseBtn) {
@@ -531,15 +614,89 @@ else:
     # PAGE 1: SINGLE CANDIDATE MATCHING ENGINE
     # ==========================================
     if active_page == PAGES[0]:
-        c_p0_back, c_p0_head = st.columns([2.4, 7.6])
+        c_p0_back, c_p0_head = st.columns([1.2, 8.8])
         with c_p0_back:
-            if st.button("⬅️ Back to Main", key="back_btn_p0", type="secondary", use_container_width=True):
+            if st.button("⬅️", key="back_btn_p0", type="secondary", help="Return to Main Dashboard"):
                 st.session_state["active_feature"] = PAGES[0]
                 st.rerun()
         with c_p0_head:
             st.subheader("🎯 Match Engineering Requirements to Internal Talent Pool")
             st.caption("Perform semantic vector retrieval, explainable AI feature weighting, and automated gap remediation.")
-        
+
+        # Interactive Feature Access Cards Grid on Main Dashboard
+        with st.expander("🚀 Explore All Enterprise AI Feature Modules", expanded=True):
+            f_col1, f_col2, f_col3 = st.columns(3)
+            with f_col1:
+                st.markdown(
+                    '<div class="feature-hub-card">'
+                    '<h4 style="margin: 0 0 0.4rem 0;">🎯 Single Candidate Matcher</h4>'
+                    '<p style="font-size: 0.85rem; margin: 0 0 0.75rem 0;">Semantic RAG vector search, explainable AI score breakdown & 2-week upskilling path.</p>'
+                    '</div>',
+                    unsafe_allow_html=True
+                )
+                if st.button("🚀 Open Matcher", key="launch_f0", use_container_width=True):
+                    st.session_state["active_feature"] = PAGES[0]
+                    st.rerun()
+
+                st.markdown(
+                    '<div class="feature-hub-card" style="margin-top: 1rem;">'
+                    '<h4 style="margin: 0 0 0.4rem 0;">📈 Career Growth Audit</h4>'
+                    '<p style="font-size: 0.85rem; margin: 0 0 0.75rem 0;">Audit employee profiles against senior target roles & generate 4-week promotion roadmaps.</p>'
+                    '</div>',
+                    unsafe_allow_html=True
+                )
+                if st.button("🚀 Open Career Audit", key="launch_f3", use_container_width=True):
+                    st.session_state["active_feature"] = PAGES[3]
+                    st.rerun()
+
+            with f_col2:
+                st.markdown(
+                    '<div class="feature-hub-card">'
+                    '<h4 style="margin: 0 0 0.4rem 0;">🧩 Multi-Agent Squad Builder</h4>'
+                    '<p style="font-size: 0.85rem; margin: 0 0 0.75rem 0;">Deconstruct project scopes into role slots & assemble non-redundant team rosters.</p>'
+                    '</div>',
+                    unsafe_allow_html=True
+                )
+                if st.button("🚀 Open Squad Builder", key="launch_f1", use_container_width=True):
+                    st.session_state["active_feature"] = PAGES[1]
+                    st.rerun()
+
+                st.markdown(
+                    '<div class="feature-hub-card" style="margin-top: 1rem;">'
+                    '<h4 style="margin: 0 0 0.4rem 0;">⭐ Performance RL Feedback</h4>'
+                    '<p style="font-size: 0.85rem; margin: 0 0 0.75rem 0;">Submit 1-5 star manager ratings on completed sprints to dynamically boost vector scores.</p>'
+                    '</div>',
+                    unsafe_allow_html=True
+                )
+                if st.button("🚀 Open RL Feedback", key="launch_f4", use_container_width=True):
+                    st.session_state["active_feature"] = PAGES[4]
+                    st.rerun()
+
+            with f_col3:
+                st.markdown(
+                    '<div class="feature-hub-card">'
+                    '<h4 style="margin: 0 0 0.4rem 0;">📥 Talent Ingestion & Roster</h4>'
+                    '<p style="font-size: 0.85rem; margin: 0 0 0.75rem 0;">Upload candidate resume PDFs into ChromaDB vector store & explore candidate roster.</p>'
+                    '</div>',
+                    unsafe_allow_html=True
+                )
+                if st.button("🚀 Open Roster Hub", key="launch_f2", use_container_width=True):
+                    st.session_state["active_feature"] = PAGES[2]
+                    st.rerun()
+
+                st.markdown(
+                    '<div class="feature-hub-card" style="margin-top: 1rem;">'
+                    '<h4 style="margin: 0 0 0.4rem 0;">🛡️ Knowledge Graph & Fairness</h4>'
+                    '<p style="font-size: 0.85rem; margin: 0 0 0.75rem 0;">EU AI Act compliance certificates & candidate-skill network cluster graphs.</p>'
+                    '</div>',
+                    unsafe_allow_html=True
+                )
+                if st.button("🚀 Open Fairness Auditor", key="launch_f5", use_container_width=True):
+                    st.session_state["active_feature"] = PAGES[5]
+                    st.rerun()
+
+        st.divider()
+
         st.markdown("**Sample Project Prompts:**")
         col_p1, col_p2, col_p3 = st.columns(3)
         
@@ -687,9 +844,9 @@ else:
     # PAGE 2: MULTI-AGENT COLLABORATIVE SQUAD BUILDER
     # ==========================================
     elif active_page == PAGES[1]:
-        c_p1_back, c_p1_head = st.columns([2.4, 7.6])
+        c_p1_back, c_p1_head = st.columns([1.2, 8.8])
         with c_p1_back:
-            if st.button("⬅️ Back to Main", key="back_btn_p1", type="secondary", use_container_width=True):
+            if st.button("⬅️", key="back_btn_p1", type="secondary", help="Return to Main Dashboard"):
                 st.session_state["active_feature"] = PAGES[0]
                 st.rerun()
         with c_p1_head:
@@ -755,9 +912,9 @@ else:
     # PAGE 3: TALENT INGESTION & ROSTER HUB
     # ==========================================
     elif active_page == PAGES[2]:
-        c_p2_back, c_p2_head = st.columns([2.4, 7.6])
+        c_p2_back, c_p2_head = st.columns([1.2, 8.8])
         with c_p2_back:
-            if st.button("⬅️ Back to Main", key="back_btn_p2", type="secondary", use_container_width=True):
+            if st.button("⬅️", key="back_btn_p2", type="secondary", help="Return to Main Dashboard"):
                 st.session_state["active_feature"] = PAGES[0]
                 st.rerun()
         with c_p2_head:
@@ -862,9 +1019,9 @@ else:
     # PAGE 4: CANDIDATE CAREER GROWTH AUDIT
     # ==========================================
     elif active_page == PAGES[3]:
-        c_p3_back, c_p3_head = st.columns([2.4, 7.6])
+        c_p3_back, c_p3_head = st.columns([1.2, 8.8])
         with c_p3_back:
-            if st.button("⬅️ Back to Main", key="back_btn_p3", type="secondary", use_container_width=True):
+            if st.button("⬅️", key="back_btn_p3", type="secondary", help="Return to Main Dashboard"):
                 st.session_state["active_feature"] = PAGES[0]
                 st.rerun()
         with c_p3_head:
@@ -995,9 +1152,9 @@ else:
     # PAGE 6: ENTERPRISE KNOWLEDGE GRAPH & HR AI FAIRNESS AUDITOR
     # ==========================================
     elif active_page == PAGES[5]:
-        c_p5_back, c_p5_head = st.columns([2.4, 7.6])
+        c_p5_back, c_p5_head = st.columns([1.2, 8.8])
         with c_p5_back:
-            if st.button("⬅️ Back to Main", key="back_btn_p5", type="secondary", use_container_width=True):
+            if st.button("⬅️", key="back_btn_p5", type="secondary", help="Return to Main Dashboard"):
                 st.session_state["active_feature"] = PAGES[0]
                 st.rerun()
         with c_p5_head:
