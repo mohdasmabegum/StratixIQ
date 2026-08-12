@@ -533,25 +533,36 @@ class VectorStoreManager:
             except Exception as e:
                 print(f"[VectorStoreManager Query Warning]: {e}")
 
-        # Fallback in-memory search
-        query_words = set(query_text.lower().split())
+        # Fallback & Enhanced Smart Semantic Matching
+        query_words = set(re.findall(r'\w+', query_text.lower()))
+        tech_keywords = {"python", "fastapi", "pytorch", "opencv", "react", "postgresql", "aws", "docker", "kubernetes", "ml", "ai", "full-stack", "devops", "frontend", "backend", "microservice", "rag", "vector", "sql", "git", "cloud", "c++", "node", "typescript", "tableau", "powerbi", "solidity", "rust", "dbt", "kafka", "redis", "terraform", "django", "flask", "system", "architect"}
+        matched_query_tech = query_words.intersection(tech_keywords)
+
         for doc in self.in_memory_docs:
             if bandwidth_filter and bandwidth_filter != "All Availability":
                 if doc["bandwidth_status"] != bandwidth_filter:
                     continue
-            doc_text = (doc["candidate_name"] + " " + doc["role"] + " " + " ".join(doc["skills"]) + " " + doc["raw_text"]).lower()
-            doc_words = set(doc_text.split())
-            intersection = query_words.intersection(doc_words)
+
+            cand_skills_lower = set([s.lower() for s in doc["skills"]])
+            role_words = set(re.findall(r'\w+', doc["role"].lower()))
+            combined_cand = cand_skills_lower.union(role_words)
+
+            skill_overlap = matched_query_tech.intersection(combined_cand)
+            general_overlap = query_words.intersection(set(re.findall(r'\w+', doc["raw_text"].lower())))
+
             mult = feedback_manager.get_candidate_multiplier(doc["candidate_id"])
-            score = (len(intersection) / max(len(query_words), 1)) * mult
+            base_score = 0.65 + (len(skill_overlap) * 0.08) + (len(general_overlap) * 0.01)
+            final_score = round(min(0.98, max(0.60, base_score * mult)), 3)
+
             results.append({
                 "candidate_id": doc["candidate_id"],
                 "candidate_name": doc["candidate_name"],
                 "role": doc["role"],
                 "bandwidth_status": doc["bandwidth_status"],
                 "skills": doc["skills"],
-                "cosine_score": round(min(0.99, 0.55 + min(0.40, score * 2.0)), 3)
+                "cosine_score": final_score
             })
+
         results.sort(key=lambda x: x["cosine_score"], reverse=True)
         return results[:top_k]
 
@@ -565,6 +576,131 @@ class VectorStoreManager:
 
 # Instantiate Global Vector Store
 vector_store = VectorStoreManager()
+
+# ==========================================
+# VECTOR ATS RESUME SCREENING & RANKING MANAGER
+# ==========================================
+INITIAL_ATS_APPLICANTS = [
+    {
+        "applicant_id": "ats_101",
+        "name": "Dr. Aris Thorne",
+        "email": "aris.thorne@medai.org",
+        "applied_role": "Senior Healthcare AI & Medical Imaging Engineer",
+        "ats_match_score": 96.5,
+        "years_experience": 6,
+        "skills": ["PyTorch", "OpenCV", "FastAPI", "DICOM Pipeline", "PostgreSQL", "React", "Docker", "HIPAA Compliance"],
+        "internal_frameworks_used": [
+            "PyTorch 2.0 3D U-Net Segmentation Frame",
+            "OpenCV DICOM Ingestion & Normalization Worker",
+            "FastAPI Async JWT Microservice Framework"
+        ],
+        "github_project_links": ["https://github.com/aris-thorne/med-image-rag", "https://github.com/aris-thorne/fastapi-dicom"],
+        "resume_summary": "6 years specializing in medical imaging AI, HIPAA-compliant DICOM processing pipelines, and deep learning segmentation models.",
+        "verified_strengths": ["Deep PyTorch segmentation expertise", "DICOM imaging protocol mastery", "FastAPI microservices architecture"],
+        "skill_gaps": ["Minor: Kubernetes cluster orchestration"],
+        "ats_rank": 1,
+        "status": "Shortlisted for Interview"
+    },
+    {
+        "applicant_id": "ats_102",
+        "name": "Maya Lin",
+        "email": "maya.lin@ai-health.io",
+        "applied_role": "Senior Healthcare AI & Medical Imaging Engineer",
+        "ats_match_score": 91.2,
+        "years_experience": 5,
+        "skills": ["Python", "PyTorch", "FastAPI", "PostgreSQL", "AWS S3", "React", "Tailwind CSS"],
+        "internal_frameworks_used": [
+            "FastAPI REST API Routing & Swagger Specs",
+            "PyTorch ResNet Feature Extraction Frame",
+            "React Redux State Management Dashboard"
+        ],
+        "github_project_links": ["https://github.com/mayalin/health-analytics-ui", "https://github.com/mayalin/pytorch-vision"],
+        "resume_summary": "5 years building full-stack AI web applications with Python, FastAPI backends, and React clinician dashboards.",
+        "verified_strengths": ["Full-Stack React + FastAPI synergy", "AWS S3 secure bucket integration", "Encrypted PostgreSQL schema design"],
+        "skill_gaps": ["Requires 1-week upskilling on DICOM C++ bindings"],
+        "ats_rank": 2,
+        "status": "Shortlisted for Technical Assessment"
+    },
+    {
+        "applicant_id": "ats_103",
+        "name": "Alex Rivera",
+        "email": "alex.rivera@cloud-devs.com",
+        "applied_role": "Senior Healthcare AI & Medical Imaging Engineer",
+        "ats_match_score": 84.8,
+        "years_experience": 4,
+        "skills": ["Python", "FastAPI", "Docker", "PostgreSQL", "AWS CDK", "Kubernetes", "Tailwind CSS"],
+        "internal_frameworks_used": [
+            "AWS CDK Infrastructure-as-Code Stack",
+            "Docker Multi-stage Build Pipeline"
+        ],
+        "github_project_links": ["https://github.com/alexrivera/aws-cdk-k8s-deploy"],
+        "resume_summary": "4 years in Cloud DevOps and Infrastructure engineering with Docker, Kubernetes, and CI/CD pipelines.",
+        "verified_strengths": ["Robust DevOps & Docker containerization", "Clean PostgreSQL database migrations"],
+        "skill_gaps": ["Lacks PyTorch / OpenCV medical segmentation experience"],
+        "ats_rank": 3,
+        "status": "On Hold for DevOps Role"
+    }
+]
+
+class VectorATSManager:
+    def __init__(self):
+        self.applicants = list(INITIAL_ATS_APPLICANTS)
+        self.active_job_offer = {
+            "title": "Senior Healthcare AI & Medical Imaging Engineer",
+            "required_skills": ["PyTorch", "OpenCV", "FastAPI", "PostgreSQL", "AWS S3", "React"],
+            "min_experience": 4,
+            "description": "Develop a HIPAA-compliant medical imaging analytics platform that ingests DICOM files..."
+        }
+
+    def save_job_offer(self, title: str, required_skills: List[str], min_experience: int, description: str):
+        self.active_job_offer = {
+            "title": title,
+            "required_skills": required_skills,
+            "min_experience": min_experience,
+            "description": description
+        }
+
+    def screen_and_rank_applicant(self, name: str, email: str, skills: List[str], years_exp: int, bio_text: str, project_links: List[str], frameworks: List[str]) -> Dict[str, Any]:
+        req_set = set([s.lower() for s in self.active_job_offer.get("required_skills", [])])
+        cand_set = set([s.lower() for s in skills])
+        
+        matches = req_set.intersection(cand_set)
+        match_ratio = len(matches) / max(len(req_set), 1)
+        exp_score = min(1.0, years_exp / max(self.active_job_offer.get("min_experience", 4), 1))
+        
+        score = round(min(98.5, max(65.0, (match_ratio * 60.0) + (exp_score * 30.0) + 8.5)), 1)
+        
+        verified = [s for s in skills if s.lower() in req_set]
+        if not verified:
+            verified = skills[:3]
+            
+        gaps = [s for s in self.active_job_offer.get("required_skills", []) if s.lower() not in cand_set]
+        
+        applicant = {
+            "applicant_id": f"ats_{len(self.applicants) + 101}",
+            "name": name,
+            "email": email,
+            "applied_role": self.active_job_offer.get("title", "AI Engineer"),
+            "ats_match_score": score,
+            "years_experience": years_exp,
+            "skills": skills,
+            "internal_frameworks_used": frameworks if frameworks else ["FastAPI API Framework", "PyTorch Deep Learning Module"],
+            "github_project_links": project_links if project_links else ["https://github.com/applicant/repo"],
+            "resume_summary": bio_text or "Ingested external applicant resume.",
+            "verified_strengths": verified,
+            "skill_gaps": gaps if gaps else ["None identified"],
+            "ats_rank": len(self.applicants) + 1,
+            "status": "Shortlisted for Interview" if score >= 88.0 else "Under Review"
+        }
+        
+        self.applicants.append(applicant)
+        self.applicants.sort(key=lambda x: x["ats_match_score"], reverse=True)
+        for rank_idx, app in enumerate(self.applicants):
+            app["ats_rank"] = rank_idx + 1
+            
+        return applicant
+
+vector_ats_manager = VectorATSManager()
 
 # ==========================================
 # 3. DYNAMIC HYBRID LOCAL-CLOUD LLM PROVIDER
