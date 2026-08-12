@@ -255,23 +255,14 @@ st.markdown(f"""
         box-shadow: 0 14px 28px rgba(59, 130, 246, 0.5) !important;
     }}
 
-    /* Simple 3-Line Hamburger Icon Button */
-    button[key="top_left_sidebar_toggle"],
-    div[data-testid="stColumn"] button[key="top_left_sidebar_toggle"] {{
-        width: 48px !important;
-        height: 48px !important;
-        padding: 0 !important;
-        font-size: 1.6rem !important;
-        font-weight: 900 !important;
-        border-radius: 0.75rem !important;
-        display: flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-        min-width: 48px !important;
-    }}
-    button[key="top_left_sidebar_toggle"]:hover {{
-        transform: scale(1.08) !important;
-        box-shadow: 0 6px 22px rgba(59, 130, 246, 0.5) !important;
+    /* Completely hide sidebar and toggle elements */
+    [data-testid="stSidebar"],
+    section[data-testid="stSidebar"],
+    [data-testid="stSidebarCollapseButton"],
+    [data-testid="stSidebarExpandButton"] {{
+        display: none !important;
+        visibility: hidden !important;
+        width: 0 !important;
     }}
 
     /* Icon-Only Left Arrow Back Button */
@@ -391,16 +382,6 @@ st.markdown(f"""
         box-shadow: 0 -8px 25px rgba(0, 0, 0, 0.4);
     }}
 
-    /* Sliding Side Navbar Styling */
-    section[data-testid="stSidebar"] {{
-        background: linear-gradient(180deg, rgba(15, 23, 42, 0.98), rgba(30, 41, 59, 0.98)) !important;
-        border-right: 1px solid rgba(255, 255, 255, 0.14) !important;
-        box-shadow: 12px 0 35px rgba(0, 0, 0, 0.5) !important;
-        backdrop-filter: blur(16px) !important;
-        padding-bottom: 90px !important;
-        transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1) !important;
-    }}
-
     /* Ensure bottom spacing so scrollable content doesn't get covered */
     .main .block-container {{
         padding-bottom: 90px !important;
@@ -444,160 +425,8 @@ else:
     except Exception:
         backend_online = False
 
-    # Sidebar Controls, Feature Navigation Menu & Theme Selector
-    with st.sidebar:
-        # Sidebar Header with Glowing Brand Logo Card
-        st.markdown(get_brand_logo_card("sidebar"), unsafe_allow_html=True)
-        st.divider()
-
-        curr_feat = st.session_state.get("active_feature", PAGES[0])
-
-        for idx, page_name in enumerate(PAGES):
-            short = SHORT_TITLES[page_name]
-            icon = page_name.split()[0]
-            is_active = (curr_feat == page_name)
-            
-            btn_type = "primary" if is_active else "secondary"
-            if st.button(f"{icon} {short}", key=f"side_nav_btn_{idx}", type=btn_type, use_container_width=True):
-                st.session_state["active_feature"] = page_name
-                st.session_state["auto_close_sidebar"] = True
-                st.rerun()
-
-        st.divider()
-
-        # UI Design System & Theme Selector
-        st.subheader("🎨 Interface Theme Mode")
-        theme_option = st.selectbox(
-            "Select Interface Theme",
-            options=["System Default", "Dark", "Light"],
-            index=["System Default", "Dark", "Light"].index(st.session_state.get("app_theme", "System Default"))
-        )
-        if theme_option != st.session_state.get("app_theme"):
-            st.session_state["app_theme"] = theme_option
-            st.rerun()
-
-        st.divider()
-
-        # Enterprise Data Privacy Toggle
-        st.subheader("🛡️ LLM Engine & Data Privacy")
-        provider_option = st.selectbox(
-            "Select Inference Model Backend",
-            options=["hybrid_local", "openai", "ollama"],
-            format_func=lambda x: {
-                "hybrid_local": "🔒 Local Hybrid Engine (Zero Data Leak)",
-                "openai": "☁️ Cloud OpenAI GPT-4o API",
-                "ollama": "🦙 Local Ollama (Llama 3)"
-            }[x],
-            index=["hybrid_local", "openai", "ollama"].index(active_provider)
-        )
-
-        if provider_option != active_provider:
-            try:
-                requests.post(f"{BACKEND_URL}/config/llm-provider", json={"provider_name": provider_option}, timeout=2.0)
-                st.session_state["llm_provider"] = provider_option
-                st.toast(f"Updated LLM provider to {provider_option}", icon="⚙️")
-            except Exception:
-                st.session_state["llm_provider"] = provider_option
-
-    # Auto-close sidebar on feature selection
-    if st.session_state.get("auto_close_sidebar"):
-        st.session_state["auto_close_sidebar"] = False
-        import streamlit.components.v1 as components
-        components.html("""
-        <script>
-            const parentDoc = window.parent.document;
-            const collapseBtn = parentDoc.querySelector('[data-testid="stSidebarCollapseButton"] button');
-            if (collapseBtn) {
-                collapseBtn.click();
-            }
-        </script>
-        """, height=0)
-
-    # Main App Header with Top-Left Simple 3-Line Icon Button, Brand Logo & Metadata
-    col_menu, col_brand, col_title = st.columns([0.8, 2.7, 6.5])
-    with col_menu:
-        # Simple 3-Line Icon Button (No rectangle label)
-        if st.button("☰", key="top_left_sidebar_toggle", help="Toggle sliding side navbar"):
-            import streamlit.components.v1 as components
-            components.html("""
-            <script>
-                const parentDoc = window.parent.document;
-                const expandBtn = parentDoc.querySelector('[data-testid="stSidebarExpandButton"] button') || parentDoc.querySelector('[data-testid="stSidebarExpandButton"]');
-                const collapseBtn = parentDoc.querySelector('[data-testid="stSidebarCollapseButton"] button') || parentDoc.querySelector('[data-testid="stSidebarCollapseButton"]');
-                if (expandBtn) {
-                    expandBtn.click();
-                } else if (collapseBtn) {
-                    collapseBtn.click();
-                }
-            </script>
-            """, height=0)
-
-    # Inject backdrop blur overlay & tap-outside to close sidebar
-    import streamlit.components.v1 as components
-    components.html("""
-    <script>
-        const parentDoc = window.parent.document;
-        
-        function initSidebarOverlay() {
-            const sidebar = parentDoc.querySelector('section[data-testid="stSidebar"]');
-            if (!sidebar) return;
-
-            let overlay = parentDoc.querySelector('#stratix-sidebar-overlay');
-            if (!overlay) {
-                overlay = parentDoc.createElement('div');
-                overlay.id = 'stratix-sidebar-overlay';
-                overlay.style.cssText = `
-                    position: fixed;
-                    top: 0;
-                    left: 0;
-                    width: 100vw;
-                    height: 100vh;
-                    background: rgba(15, 23, 42, 0.65);
-                    backdrop-filter: blur(10px);
-                    -webkit-backdrop-filter: blur(10px);
-                    z-index: 998;
-                    opacity: 0;
-                    visibility: hidden;
-                    pointer-events: none;
-                    transition: opacity 0.25s ease-in-out, visibility 0.25s ease-in-out;
-                `;
-                parentDoc.body.appendChild(overlay);
-
-                overlay.addEventListener('click', () => {
-                    const collapseBtn = parentDoc.querySelector('[data-testid="stSidebarCollapseButton"] button');
-                    if (collapseBtn) {
-                        collapseBtn.click();
-                    }
-                });
-            }
-
-            function updateOverlay() {
-                const expandBtn = parentDoc.querySelector('[data-testid="stSidebarExpandButton"]');
-                const ariaExpanded = sidebar.getAttribute('aria-expanded');
-                
-                // If expandBtn exists or aria-expanded is false, sidebar is CLOSED
-                const isClosed = (expandBtn !== null) || (ariaExpanded === 'false');
-                
-                if (!isClosed) {
-                    overlay.style.opacity = '1';
-                    overlay.style.visibility = 'visible';
-                    overlay.style.pointerEvents = 'auto';
-                } else {
-                    overlay.style.opacity = '0';
-                    overlay.style.visibility = 'hidden';
-                    overlay.style.pointerEvents = 'none';
-                }
-            }
-
-            updateOverlay();
-            const observer = new MutationObserver(updateOverlay);
-            observer.observe(parentDoc.body, { childList: true, subtree: true, attributes: true });
-        }
-
-        setTimeout(initSidebarOverlay, 150);
-    </script>
-    """, height=0)
-
+    # Main App Header with Brand Logo & Metadata
+    col_brand, col_title = st.columns([3, 7])
     with col_brand:
         st.markdown(get_brand_logo_card("header"), unsafe_allow_html=True)
 
