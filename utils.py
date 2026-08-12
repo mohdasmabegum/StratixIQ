@@ -673,27 +673,42 @@ INITIAL_ATS_APPLICANTS = [
 
 class VectorATSManager:
     def __init__(self):
+        self.job_offers_catalog = list(ACTIVE_DEPARTMENT_PROJECTS)
         self.applicants = list(INITIAL_ATS_APPLICANTS)
-        self.active_job_offer = {
-            "title": "Senior Healthcare AI & Medical Imaging Engineer",
-            "required_skills": ["PyTorch", "OpenCV", "FastAPI", "PostgreSQL", "AWS S3", "React"],
-            "min_experience": 4,
-            "description": "Develop a HIPAA-compliant medical imaging analytics platform that ingests DICOM files..."
-        }
+        self.active_job_offer = self.job_offers_catalog[0]
 
-    def save_job_offer(self, title: str, required_skills: List[str], min_experience: int, description: str):
-        self.active_job_offer = {
+    def set_active_job_by_title(self, title: str):
+        for job in self.job_offers_catalog:
+            if job["title"] == title:
+                self.active_job_offer = job
+                return job
+        return self.active_job_offer
+
+    def save_job_offer(self, title: str, required_skills: List[str], min_experience: int, description: str, department: str = "Engineering"):
+        new_job = {
+            "project_id": f"job_custom_{len(self.job_offers_catalog) + 1}",
+            "department": department,
             "title": title,
             "required_skills": required_skills,
             "min_experience": min_experience,
             "description": description
         }
+        # Check if already exists
+        existing = next((j for j in self.job_offers_catalog if j["title"].lower() == title.lower()), None)
+        if existing:
+            existing["required_skills"] = required_skills
+            existing["min_experience"] = min_experience
+            existing["description"] = description
+            self.active_job_offer = existing
+        else:
+            self.job_offers_catalog.insert(0, new_job)
+            self.active_job_offer = new_job
 
     def get_cross_project_matches(self, applicant: Dict[str, Any]) -> List[Dict[str, Any]]:
         cand_skills = set([s.lower() for s in applicant.get("skills", [])])
         matched_projects = []
         
-        for proj in ACTIVE_DEPARTMENT_PROJECTS:
+        for proj in self.job_offers_catalog:
             req_set = set([s.lower() for s in proj["required_skills"]])
             intersection = cand_skills.intersection(req_set)
             ratio = len(intersection) / max(len(req_set), 1)
@@ -712,13 +727,17 @@ class VectorATSManager:
         matched_projects.sort(key=lambda x: x["match_percentage"], reverse=True)
         return matched_projects
 
-    def screen_and_rank_applicant(self, name: str, email: str, skills: List[str], years_exp: int, bio_text: str, project_links: List[str], frameworks: List[str]) -> Dict[str, Any]:
-        req_set = set([s.lower() for s in self.active_job_offer.get("required_skills", [])])
+    def screen_and_rank_applicant(self, name: str, email: str, skills: List[str], years_exp: int, bio_text: str, project_links: List[str], frameworks: List[str], selected_job_title: Optional[str] = None) -> Dict[str, Any]:
+        target_job = self.active_job_offer
+        if selected_job_title:
+            target_job = self.set_active_job_by_title(selected_job_title)
+
+        req_set = set([s.lower() for s in target_job.get("required_skills", [])])
         cand_set = set([s.lower() for s in skills])
         
         matches = req_set.intersection(cand_set)
         match_ratio = len(matches) / max(len(req_set), 1)
-        exp_score = min(1.0, years_exp / max(self.active_job_offer.get("min_experience", 4), 1))
+        exp_score = min(1.0, years_exp / max(target_job.get("min_experience", 4), 1))
         
         score = round(min(98.5, max(65.0, (match_ratio * 60.0) + (exp_score * 30.0) + 8.5)), 1)
         
@@ -726,13 +745,13 @@ class VectorATSManager:
         if not verified:
             verified = skills[:3]
             
-        gaps = [s for s in self.active_job_offer.get("required_skills", []) if s.lower() not in cand_set]
+        gaps = [s for s in target_job.get("required_skills", []) if s.lower() not in cand_set]
         
         applicant = {
             "applicant_id": f"ats_{len(self.applicants) + 101}",
             "name": name,
             "email": email,
-            "applied_role": self.active_job_offer.get("title", "AI Engineer"),
+            "applied_role": target_job.get("title", "External AI Applicant"),
             "ats_match_score": score,
             "years_experience": years_exp,
             "skills": skills,
