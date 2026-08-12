@@ -617,86 +617,7 @@ ACTIVE_DEPARTMENT_PROJECTS = [
     }
 ]
 
-INITIAL_ATS_APPLICANTS = [
-    {
-        "applicant_id": "ats_101",
-        "name": "Dr. Aris Thorne",
-        "email": "aris.thorne@medai.org",
-        "applied_role": "Senior Healthcare AI & Medical Imaging Engineer",
-        "ats_match_score": 96.5,
-        "years_experience": 6,
-        "skills": ["PyTorch", "OpenCV", "FastAPI", "DICOM Pipeline", "PostgreSQL", "React", "Docker", "HIPAA Compliance"],
-        "internal_frameworks_used": [
-            "PyTorch 2.0 3D U-Net Segmentation Frame",
-            "OpenCV DICOM Ingestion & Normalization Worker",
-            "FastAPI Async JWT Microservice Framework"
-        ],
-        "github_project_links": ["https://github.com/aris-thorne/med-image-rag", "https://github.com/aris-thorne/fastapi-dicom"],
-        "resume_summary": "6 years specializing in medical imaging AI, HIPAA-compliant DICOM processing pipelines, and deep learning segmentation models.",
-        "verified_strengths": ["Deep PyTorch segmentation expertise", "DICOM imaging protocol mastery", "FastAPI microservices architecture"],
-        "skill_gaps": ["Minor: Kubernetes cluster orchestration"],
-        "ats_rank": 1,
-        "status": "Shortlisted for Interview"
-    },
-    {
-        "applicant_id": "ats_102",
-        "name": "Maya Lin",
-        "email": "maya.lin@ai-health.io",
-        "applied_role": "Senior Healthcare AI & Medical Imaging Engineer",
-        "ats_match_score": 91.2,
-        "years_experience": 5,
-        "skills": ["Python", "PyTorch", "FastAPI", "PostgreSQL", "AWS S3", "React", "Tailwind CSS", "Docker"],
-        "internal_frameworks_used": [
-            "FastAPI REST API Routing & Swagger Specs",
-            "PyTorch ResNet Feature Extraction Frame",
-            "React Redux State Management Dashboard"
-        ],
-        "github_project_links": ["https://github.com/mayalin/health-analytics-ui", "https://github.com/mayalin/pytorch-vision"],
-        "resume_summary": "5 years building full-stack AI web applications with Python, FastAPI backends, and React clinician dashboards.",
-        "verified_strengths": ["Full-Stack React + FastAPI synergy", "AWS S3 secure bucket integration", "Encrypted PostgreSQL schema design"],
-        "skill_gaps": ["Requires 1-week upskilling on DICOM C++ bindings"],
-        "ats_rank": 2,
-        "status": "Shortlisted for Technical Assessment"
-    },
-    {
-        "applicant_id": "ats_103",
-        "name": "Alex Rivera",
-        "email": "alex.rivera@cloud-devs.com",
-        "applied_role": "Senior Healthcare AI & Medical Imaging Engineer",
-        "ats_match_score": 84.8,
-        "years_experience": 4,
-        "skills": ["Python", "FastAPI", "Docker", "PostgreSQL", "AWS CDK", "Kubernetes", "Tailwind CSS", "Terraform", "CI/CD"],
-        "internal_frameworks_used": [
-            "AWS CDK Infrastructure-as-Code Stack",
-            "Docker Multi-stage Build Pipeline"
-        ],
-        "github_project_links": ["https://github.com/alexrivera/aws-cdk-k8s-deploy"],
-        "resume_summary": "4 years in Cloud DevOps and Infrastructure engineering with Docker, Kubernetes, and CI/CD pipelines.",
-        "verified_strengths": ["Robust DevOps & Docker containerization", "Clean PostgreSQL database migrations"],
-        "skill_gaps": ["Lacks PyTorch / OpenCV medical segmentation experience"],
-        "ats_rank": 3,
-        "status": "On Hold for DevOps Role"
-    },
-    {
-        "applicant_id": "ats_104",
-        "name": "Rohan Deshmukh",
-        "email": "rohan.d@fresher-grad.edu",
-        "applied_role": "FinTech Real-Time Transaction Analytics Engine",
-        "ats_match_score": 92.5,
-        "years_experience": 0,
-        "skills": ["Python", "FastAPI", "SQL", "PostgreSQL", "React", "Docker"],
-        "internal_frameworks_used": [
-            "FastAPI REST API Graduate Project",
-            "PostgreSQL Relational Schema Design"
-        ],
-        "github_project_links": ["https://github.com/rohandeshmukh/fintech-api"],
-        "resume_summary": "Computer Science Graduate (Fresher, 0 Yrs Exp). Top academic performer with hands-on FastAPI, SQL, and Docker project portfolio.",
-        "verified_strengths": ["Strong foundational CS algorithms", "FastAPI & Python project portfolio", "Clean PostgreSQL database queries"],
-        "skill_gaps": ["0 Yrs Corporate Experience (Entry Level Fresher)"],
-        "ats_rank": 4,
-        "status": "Shortlisted for Graduate Hiring Role"
-    }
-]
+INITIAL_ATS_APPLICANTS = []
 
 class VectorATSManager:
     def __init__(self):
@@ -711,13 +632,19 @@ class VectorATSManager:
                 return job
         return self.active_job_offer
 
-    def save_job_offer(self, title: str, required_skills: List[str], min_experience: int, description: str, department: str = "Engineering"):
+    def save_job_offer(self, title: str, required_skills: List[str], min_experience: int, description: str, department: str = "Engineering", job_type: str = "Full-Time Role"):
+        exp_level_str = "Fresher (0 Yrs / Entry Level)" if min_experience == 0 else f"Experienced ({min_experience}+ Yrs)"
+        if "Internship" in job_type:
+            exp_level_str = "Graduate Internship (0 Yrs)"
+
         new_job = {
             "project_id": f"job_custom_{len(self.job_offers_catalog) + 1}",
             "department": department,
             "title": title,
             "required_skills": required_skills,
             "min_experience": min_experience,
+            "experience_level": exp_level_str,
+            "job_type": job_type,
             "description": description
         }
         # Check if already exists
@@ -725,6 +652,8 @@ class VectorATSManager:
         if existing:
             existing["required_skills"] = required_skills
             existing["min_experience"] = min_experience
+            existing["experience_level"] = exp_level_str
+            existing["job_type"] = job_type
             existing["description"] = description
             self.active_job_offer = existing
         else:
