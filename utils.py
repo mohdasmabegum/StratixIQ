@@ -577,9 +577,38 @@ class VectorStoreManager:
 # Instantiate Global Vector Store
 vector_store = VectorStoreManager()
 
-# ==========================================
-# VECTOR ATS RESUME SCREENING & RANKING MANAGER
-# ==========================================
+# Enterprise Departmental Projects Catalog for Cross-Project Candidate Matching
+ACTIVE_DEPARTMENT_PROJECTS = [
+    {
+        "project_id": "proj_med_ai",
+        "department": "Healthcare & Medical AI",
+        "title": "Healthcare AI Diagnostic & Imaging Pipeline",
+        "required_skills": ["PyTorch", "OpenCV", "FastAPI", "DICOM Pipeline", "PostgreSQL", "React", "Docker", "HIPAA Compliance"],
+        "description": "HIPAA-compliant medical imaging analytics platform with PyTorch segmentation models and FastAPI backends."
+    },
+    {
+        "project_id": "proj_cloud_devops",
+        "department": "Cloud & Infrastructure Operations",
+        "title": "Enterprise Kubernetes & AWS CDK Platform",
+        "required_skills": ["AWS CDK", "Kubernetes", "Docker", "Python", "Terraform", "CI/CD", "FastAPI", "PostgreSQL"],
+        "description": "High-availability cloud infrastructure automation, Kubernetes cluster provisioning, and CI/CD pipelines."
+    },
+    {
+        "project_id": "proj_fintech_data",
+        "department": "Financial Services & Analytics",
+        "title": "FinTech Real-Time Transaction Analytics Engine",
+        "required_skills": ["Python", "PostgreSQL", "Kafka", "Redis", "Advanced SQL", "FastAPI", "React", "Docker"],
+        "description": "High-throughput financial analytics engine processing real-time transactional data feeds."
+    },
+    {
+        "project_id": "proj_saas_mobile",
+        "department": "Enterprise SaaS & Mobile Products",
+        "title": "Cross-Platform SaaS Microservices Portal",
+        "required_skills": ["React", "TypeScript", "Node.js", "FastAPI", "Tailwind CSS", "Jest", "MongoDB"],
+        "description": "Multi-tenant enterprise SaaS web portal with accessible React UI component libraries."
+    }
+]
+
 INITIAL_ATS_APPLICANTS = [
     {
         "applicant_id": "ats_101",
@@ -608,7 +637,7 @@ INITIAL_ATS_APPLICANTS = [
         "applied_role": "Senior Healthcare AI & Medical Imaging Engineer",
         "ats_match_score": 91.2,
         "years_experience": 5,
-        "skills": ["Python", "PyTorch", "FastAPI", "PostgreSQL", "AWS S3", "React", "Tailwind CSS"],
+        "skills": ["Python", "PyTorch", "FastAPI", "PostgreSQL", "AWS S3", "React", "Tailwind CSS", "Docker"],
         "internal_frameworks_used": [
             "FastAPI REST API Routing & Swagger Specs",
             "PyTorch ResNet Feature Extraction Frame",
@@ -628,7 +657,7 @@ INITIAL_ATS_APPLICANTS = [
         "applied_role": "Senior Healthcare AI & Medical Imaging Engineer",
         "ats_match_score": 84.8,
         "years_experience": 4,
-        "skills": ["Python", "FastAPI", "Docker", "PostgreSQL", "AWS CDK", "Kubernetes", "Tailwind CSS"],
+        "skills": ["Python", "FastAPI", "Docker", "PostgreSQL", "AWS CDK", "Kubernetes", "Tailwind CSS", "Terraform", "CI/CD"],
         "internal_frameworks_used": [
             "AWS CDK Infrastructure-as-Code Stack",
             "Docker Multi-stage Build Pipeline"
@@ -659,6 +688,29 @@ class VectorATSManager:
             "min_experience": min_experience,
             "description": description
         }
+
+    def get_cross_project_matches(self, applicant: Dict[str, Any]) -> List[Dict[str, Any]]:
+        cand_skills = set([s.lower() for s in applicant.get("skills", [])])
+        matched_projects = []
+        
+        for proj in ACTIVE_DEPARTMENT_PROJECTS:
+            req_set = set([s.lower() for s in proj["required_skills"]])
+            intersection = cand_skills.intersection(req_set)
+            ratio = len(intersection) / max(len(req_set), 1)
+            exp = applicant.get("years_experience", 4)
+            score = round(min(98.5, max(60.0, (ratio * 65.0) + (min(1.0, exp / 4.0) * 25.0) + 8.0)), 1)
+            
+            if score >= 75.0:
+                matched_projects.append({
+                    "project_id": proj["project_id"],
+                    "department": proj["department"],
+                    "project_title": proj["title"],
+                    "match_percentage": score,
+                    "matching_skills": [s for s in proj["required_skills"] if s.lower() in cand_skills]
+                })
+                
+        matched_projects.sort(key=lambda x: x["match_percentage"], reverse=True)
+        return matched_projects
 
     def screen_and_rank_applicant(self, name: str, email: str, skills: List[str], years_exp: int, bio_text: str, project_links: List[str], frameworks: List[str]) -> Dict[str, Any]:
         req_set = set([s.lower() for s in self.active_job_offer.get("required_skills", [])])
