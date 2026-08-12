@@ -1125,20 +1125,38 @@ else:
 
                 pub_job_btn = st.form_submit_button("⚡ Analyze JD with NLP, Extract Sub-Requirements & Publish Opportunity ➔", type="primary")
                 if pub_job_btn:
-                    if new_j_title.strip() and (new_j_skills.strip() or new_j_raw_jd.strip()):
-                        skills_lst = [s.strip() for s in new_j_skills.split(",") if s.strip()]
-                        min_exp_val = 0 if ("Undergraduate" in new_j_type or "Fresher" in new_j_type or "Internship" in new_j_type) else (1 if "1-3" in new_j_type else 4)
+                    jd_text_payload = new_j_raw_jd.strip() or new_j_desc.strip() or new_j_skills.strip()
+                    if jd_text_payload or new_j_title.strip():
                         from utils import parse_job_description_nlp
-                        nlp_res = parse_job_description_nlp(new_j_raw_jd or new_j_desc or new_j_title)
+                        nlp_res = parse_job_description_nlp(jd_text_payload or new_j_title)
+                        
+                        final_title = new_j_title.strip()
+                        if not final_title:
+                            primary_tech = nlp_res["primary_tech_stack"][0] if nlp_res["primary_tech_stack"] else "Software"
+                            final_title = f"{primary_tech} Engineering Opportunity"
+
+                        skills_lst = [s.strip() for s in new_j_skills.split(",") if s.strip()]
                         if not skills_lst:
                             skills_lst = nlp_res["primary_tech_stack"]
 
-                        vector_ats_manager.save_job_offer(new_j_title.strip(), skills_lst, min_exp_val, new_j_desc.strip(), department=new_j_dept, job_type=new_j_type, raw_jd_text=new_j_raw_jd)
-                        st.toast(f"✅ Analyzed JD & Published '{new_j_title}'!", icon="⚡")
-                        st.success(f"Successfully published **{new_j_title}** ({new_j_type}) with NLP sub-requirements deconstruction!")
+                        min_exp_val = 0 if ("Undergraduate" in new_j_type or "Fresher" in new_j_type or "Internship" in new_j_type) else (1 if "1-3" in new_j_type else 4)
+
+                        vector_ats_manager.save_job_offer(
+                            title=final_title,
+                            required_skills=skills_lst,
+                            min_experience=min_exp_val,
+                            description=new_j_desc.strip() or jd_text_payload[:150],
+                            department=new_j_dept,
+                            job_type=new_j_type,
+                            raw_jd_text=jd_text_payload
+                        )
+                        
+                        st.session_state["ats_active_job_select"] = final_title
+                        st.toast(f"⚡ Analyzed JD & Published '{final_title}'!", icon="🚀")
+                        st.success(f"Successfully published **{final_title}** ({new_j_type}) into ATS Opportunity Catalog!")
                         st.rerun()
                     else:
-                        st.error("Opportunity Title and Job Description / Skills are required.")
+                        st.error("Please paste Job Description (JD) text or enter a job title to publish.")
 
         with st.container(border=True):
             c_j_head, c_j_badge = st.columns([3.5, 1.2])

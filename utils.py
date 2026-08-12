@@ -620,40 +620,71 @@ ACTIVE_DEPARTMENT_PROJECTS = [
 INITIAL_ATS_APPLICANTS = []
 
 def parse_job_description_nlp(jd_text: str) -> Dict[str, Any]:
+    if not jd_text or not isinstance(jd_text, str):
+        jd_text = "Software Engineering & Enterprise AI Role"
+        
     text_lower = jd_text.lower()
+
+    tech_vocab = [
+        "python", "pytorch", "opencv", "fastapi", "postgresql", "aws", "react", "docker", 
+        "kubernetes", "typescript", "node.js", "kafka", "redis", "dicom", "sql", "hipaa", 
+        "terraform", "c++", "mlops", "langchain", "mongodb", "java", "golang", "flutter", 
+        "swift", "kotlin", "vue", "angular", "django", "flask", "tableau", "spark", 
+        "hadoop", "azure", "gcp", "ci/cd", "git", "rest", "graphql", "rag", "llm", "bert",
+        "transformers", "nlp", "computer vision", "tensorflow", "scikit-learn", "pandas", "numpy"
+    ]
     
-    tech_vocab = {"python", "pytorch", "opencv", "fastapi", "postgresql", "aws", "react", "docker", "kubernetes", "typescript", "node.js", "kafka", "redis", "dicom", "sql", "hipaa", "terraform", "c++", "mlops", "langchain", "mongodb", "java", "golang"}
-    extracted_tech = [t.upper() if t in ["aws", "sql"] else t.title() for t in tech_vocab if t in text_lower]
-    if not extracted_tech:
-        extracted_tech = ["Python", "FastAPI", "Docker"]
-        
-    arch_keywords = {
-        "microservice": "Async Microservices Architecture",
+    found_tech = []
+    for tech in tech_vocab:
+        if tech in text_lower:
+            found_tech.append(tech.upper() if tech in ["aws", "sql", "gcp", "rag", "llm", "nlp", "bert", "ci/cd", "git", "c++"] else tech.title())
+
+    if len(found_tech) < 2:
+        words = re.findall(r'\b[A-Z][a-zA-Z0-9\+#\.]+\b', jd_text)
+        for w in words:
+            if len(w) > 2 and w not in found_tech and w.lower() not in ["the", "and", "for", "with", "this", "candidate", "role", "looking", "job"]:
+                found_tech.append(w)
+                
+    if not found_tech:
+        found_tech = ["Python", "FastAPI", "Software Engineering", "System Architecture"]
+
+    unique_tech = list(dict.fromkeys(found_tech))[:8]
+
+    arch_patterns = {
+        "microservice": "Async Microservices & REST API Architecture",
         "pipeline": "ETL & Deep Learning Data Pipelines",
-        "segmentation": "3D Medical Image Segmentation Models",
-        "async": "Async I/O Concurrency & REST Routing",
-        "infrastructure": "Infrastructure-as-Code Automation",
-        "database": "Relational & NoSQL Schema Design",
-        "analytics": "Real-Time Transactional Data Processing"
+        "segmentation": "3D Medical Image Segmentation & AI Models",
+        "async": "Async Concurrency & High-Throughput I/O",
+        "infrastructure": "Infrastructure-as-Code & Cloud Automation",
+        "database": "Relational & NoSQL Database Schema Optimization",
+        "analytics": "Real-Time Transactional Analytics & Monitoring",
+        "frontend": "Responsive User Interface & Dashboard Engineering",
+        "mobile": "Cross-Platform Mobile Application Development",
+        "security": "Enterprise Cybersecurity & Compliance Protocol",
+        "ml": "Machine Learning Model Deployment & MLOps Pipelines"
     }
-    extracted_arch = [val for key, val in arch_keywords.items() if key in text_lower]
+    
+    extracted_arch = [val for key, val in arch_patterns.items() if key in text_lower]
     if not extracted_arch:
-        extracted_arch = ["REST API Endpoint Engineering", "Containerized Docker Deployments"]
-        
+        extracted_arch = ["Full-Stack Software Architecture", "Scalable System Component Engineering"]
+
     domain_scope = []
-    if any(k in text_lower for k in ["health", "dicom", "hipaa", "medical"]):
+    if any(k in text_lower for k in ["health", "dicom", "hipaa", "medical", "clinical", "hospital"]):
         domain_scope.append("Healthcare Medical AI & HIPAA Compliance")
-    if any(k in text_lower for k in ["fintech", "transaction", "bank", "financial"]):
+    if any(k in text_lower for k in ["fintech", "transaction", "bank", "financial", "trading", "payment"]):
         domain_scope.append("FinTech & Real-Time Financial Analytics")
-    if any(k in text_lower for k in ["cloud", "aws", "k8s", "kubernetes"]):
-        domain_scope.append("High-Availability Cloud Infrastructure")
-    if any(k in text_lower for k in ["saas", "web", "react"]):
+    if any(k in text_lower for k in ["cloud", "aws", "k8s", "kubernetes", "devops", "azure", "gcp"]):
+        domain_scope.append("High-Availability Cloud & Infrastructure Operations")
+    if any(k in text_lower for k in ["saas", "web", "react", "portal", "frontend"]):
         domain_scope.append("Multi-Tenant Enterprise SaaS Portal")
+    if any(k in text_lower for k in ["ai", "llm", "rag", "gpt", "deep learning", "machine learning"]):
+        domain_scope.append("Generative AI & LLM Vector Engineering")
+
     if not domain_scope:
-        domain_scope = ["Enterprise AI Software Engineering"]
-        
+        domain_scope = ["Enterprise AI Software & Application Engineering"]
+
     return {
-        "primary_tech_stack": extracted_tech,
+        "primary_tech_stack": unique_tech,
         "architectural_competencies": extracted_arch,
         "domain_compliance_scope": domain_scope,
         "raw_jd_text": jd_text
