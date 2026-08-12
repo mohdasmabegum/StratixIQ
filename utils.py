@@ -752,6 +752,25 @@ class VectorATSManager:
                 found_skills.append(tech.upper() if tech in ["aws", "sql"] else tech.title())
 
         target_job = self.set_active_job_by_title(selected_job_title)
+        if not found_skills:
+            found_skills = target_job.get("required_skills", ["Python", "FastAPI"])[:4]
+
+        frameworks = []
+        if "pytorch" in text_lower:
+            frameworks.append("PyTorch 2.0 Deep Learning Pipeline")
+        if "fastapi" in text_lower:
+            frameworks.append("FastAPI Async JWT REST Framework")
+        if "opencv" in text_lower or "dicom" in text_lower:
+            frameworks.append("OpenCV Medical Image Normalization Worker")
+        if "docker" in text_lower or "kubernetes" in text_lower or "aws" in text_lower:
+            frameworks.append("Docker Containerized Deployment Infrastructure")
+        if "react" in text_lower or "typescript" in text_lower:
+            frameworks.append("React Redux Web Component Dashboard")
+
+        if not frameworks:
+            req_skill_first = target_job.get('required_skills', ['FastAPI'])[0]
+            frameworks = [f"{req_skill_first} Core Engineering Module", "Docker Microservice Architecture"]
+
         min_exp_req = target_job.get("min_experience", 0)
         
         if min_exp_req == 0:

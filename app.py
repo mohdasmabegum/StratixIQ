@@ -1176,6 +1176,9 @@ else:
                 st.markdown("**🛡️ Domain & Compliance Scope:**")
                 st.caption(", ".join(nlp_sub.get("domain_compliance_scope", [])))
 
+        if "ats_applicants_store" not in st.session_state:
+            st.session_state["ats_applicants_store"] = []
+
         st.divider()
         with st.container(border=True):
             st.markdown("### 📥 Bulk Upload Received External Applicant Resumes (Multi-PDF Vector ATS Screener)")
@@ -1198,18 +1201,28 @@ else:
                 )
                 run_bulk_ats = st.button("🚀 Process Resumes & Run Vector ATS Audit", type="primary", use_container_width=True)
 
-            if run_bulk_ats and uploaded_resumes:
-                for pdf in uploaded_resumes:
-                    vector_ats_manager.process_pdf_resume(pdf, target_job_title)
-                st.toast(f"✅ Processed {len(uploaded_resumes)} resumes with Vector ATS!", icon="🚀")
-                st.success(f"Successfully processed and ranked {len(uploaded_resumes)} applicant resumes for **{target_job_title}**!")
-                st.rerun()
+            if uploaded_resumes:
+                already_processed_count = len(st.session_state.get("ats_applicants_store", []))
+                should_process = run_bulk_ats or (already_processed_count < len(uploaded_resumes))
+
+                if should_process:
+                    st.session_state["ats_applicants_store"] = []
+                    for pdf in uploaded_resumes:
+                        res = vector_ats_manager.process_pdf_resume(pdf, target_job_title)
+                        st.session_state["ats_applicants_store"].append(res)
+                    
+                    st.session_state["ats_applicants_store"].sort(key=lambda x: x["ats_match_score"], reverse=True)
+                    for r_idx, app_item in enumerate(st.session_state["ats_applicants_store"]):
+                        app_item["ats_rank"] = r_idx + 1
+
+                    st.toast(f"✅ Processed {len(uploaded_resumes)} resumes with Vector ATS!", icon="🚀")
+                    st.rerun()
 
         st.divider()
         st.markdown("### 🏆 External Applicant Shortlist Matrix (Side-by-Side Vector ATS Breakdown)")
         st.caption("Ranks external candidate resumes by ATS match score, highlights candidate qualification tier (Undergraduate, Graduated Fresher, Experienced), and displays code frameworks side-by-side with cross-departmental transfer eligibility.")
 
-        ranked_applicants = vector_ats_manager.applicants
+        ranked_applicants = st.session_state.get("ats_applicants_store", [])
         if not ranked_applicants:
             st.info("ℹ️ **No External Applicant Resumes Uploaded Yet for ATS Screening.**\n\nUpload applicant resume PDFs in the box above to perform automated ATS parsing, extract candidate qualification tiers, and generate rankings.")
         else:
