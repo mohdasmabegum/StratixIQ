@@ -389,8 +389,19 @@ st.markdown(f"""
 </style>
 """, unsafe_allow_html=True)
 
+@st.cache_data(ttl=30)
+def check_backend_health_cached(url: str):
+    try:
+        res = requests.get(f"{url}/health", timeout=0.3)
+        if res.status_code == 200:
+            data = res.json()
+            return True, data.get("indexed_vector_count", 5), data.get("active_llm_provider", "hybrid_local")
+    except Exception:
+        pass
+    return False, 5, "hybrid_local"
+
 # ==========================================
-# SPLASH SCREEN WITH BRAND LOGO CARD
+# MAIN APP ROUTING & INTERACTIVE WORKSPACE
 # ==========================================
 if not st.session_state["splash_done"]:
     splash_card_html = get_brand_logo_card("splash")
@@ -410,20 +421,8 @@ if not st.session_state["splash_done"]:
             st.rerun()
 
 else:
-    # Check Backend API Health Connection
-    backend_online = False
-    indexed_count = 5
-    active_provider = st.session_state["llm_provider"]
-
-    try:
-        res = requests.get(f"{BACKEND_URL}/health", timeout=1.5)
-        if res.status_code == 200:
-            backend_online = True
-            data = res.json()
-            indexed_count = data.get("indexed_vector_count", 5)
-            active_provider = data.get("active_llm_provider", active_provider)
-    except Exception:
-        backend_online = False
+    # Optimized Cached Health Check (Zero-delay reruns)
+    backend_online, indexed_count, active_provider = check_backend_health_cached(BACKEND_URL)
 
     # Main App Header with Brand Logo & Metadata
     col_brand, col_title = st.columns([3, 7])
