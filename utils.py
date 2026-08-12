@@ -709,23 +709,18 @@ class VectorATSManager:
                 found_skills.append(tech.upper() if tech in ["aws", "sql"] else tech.title())
 
         target_job = self.set_active_job_by_title(selected_job_title)
-        if not found_skills:
-            found_skills = target_job.get("required_skills", ["Python", "FastAPI"])[:4]
-
-        frameworks = []
-        if "pytorch" in text_lower:
-            frameworks.append("PyTorch Deep Learning Segmentation Pipeline")
-        if "fastapi" in text_lower:
-            frameworks.append("FastAPI Async JWT REST Framework")
-        if "opencv" in text_lower or "dicom" in text_lower:
-            frameworks.append("OpenCV Medical Image Normalization Worker")
-        if "docker" in text_lower or "kubernetes" in text_lower:
-            frameworks.append("Docker Multi-Stage Build Infrastructure")
-        if "react" in text_lower:
-            frameworks.append("React Redux Component Architecture")
-
-        if not frameworks:
-            frameworks = [f"{target_job.get('required_skills', ['FastAPI'])[0]} Core Engineering Module", "Docker Microservice Architecture"]
+        min_exp_req = target_job.get("min_experience", 0)
+        
+        if min_exp_req == 0:
+            if any(term in text_lower for term in ["undergraduate", "student", "intern", "pursuing"]):
+                detected_exp = 0
+                cand_tier = "Undergraduate / Student Intern"
+            else:
+                detected_exp = 0
+                cand_tier = "Graduated Fresher"
+        else:
+            detected_exp = max(1, min_exp_req)
+            cand_tier = f"Experienced ({detected_exp}+ Yrs Exp)"
 
         sanitized_email = clean_name.lower().replace(" ", ".") + "@external-applicant.io"
 
@@ -733,14 +728,15 @@ class VectorATSManager:
             name=clean_name,
             email=sanitized_email,
             skills=found_skills,
-            years_exp=5,
+            years_exp=detected_exp,
             bio_text=extracted_text[:180] + "..." if len(extracted_text) > 50 else f"Ingested external resume PDF '{filename}' for ATS screening.",
             project_links=[f"https://github.com/{clean_name.lower().replace(' ', '')}/project-repo"],
             frameworks=frameworks,
-            selected_job_title=selected_job_title
+            selected_job_title=selected_job_title,
+            candidate_tier=cand_tier
         )
 
-    def screen_and_rank_applicant(self, name: str, email: str, skills: List[str], years_exp: int, bio_text: str, project_links: List[str], frameworks: List[str], selected_job_title: Optional[str] = None) -> Dict[str, Any]:
+    def screen_and_rank_applicant(self, name: str, email: str, skills: List[str], years_exp: int, bio_text: str, project_links: List[str], frameworks: List[str], selected_job_title: Optional[str] = None, candidate_tier: Optional[str] = None) -> Dict[str, Any]:
         target_job = self.active_job_offer
         if selected_job_title:
             target_job = self.set_active_job_by_title(selected_job_title)
@@ -754,6 +750,8 @@ class VectorATSManager:
         else:
             exp_score = min(1.0, years_exp / max(min_req_exp, 1))
         
+        matches = req_set.intersection(cand_set)
+        match_ratio = len(matches) / max(len(req_set), 1)
         score = round(min(98.5, max(65.0, (match_ratio * 60.0) + (exp_score * 30.0) + 8.5)), 1)
         
         verified = [s for s in skills if s.lower() in req_set]
@@ -762,11 +760,18 @@ class VectorATSManager:
             
         gaps = [s for s in target_job.get("required_skills", []) if s.lower() not in cand_set]
         
+        if not candidate_tier:
+            if years_exp == 0:
+                candidate_tier = "Graduated Fresher"
+            else:
+                candidate_tier = f"Experienced ({years_exp}+ Yrs)"
+
         applicant = {
             "applicant_id": f"ats_{len(self.applicants) + 101}",
             "name": name,
             "email": email,
             "applied_role": target_job.get("title", "External AI Applicant"),
+            "candidate_tier": candidate_tier,
             "ats_match_score": score,
             "years_experience": years_exp,
             "skills": skills,

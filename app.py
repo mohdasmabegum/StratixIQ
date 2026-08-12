@@ -610,9 +610,14 @@ else:
                         with c_j1:
                             job_title_input = st.text_input("Target Online Job Title", value="Senior Healthcare AI & Medical Imaging Engineer")
                             exp_level_opt = st.selectbox(
-                                "Target Experience Hiring Level",
-                                ["Fresher (0 Yrs Exp / Entry Level)", "Experienced (1+ Yrs Required)", "Experienced (3+ Yrs Required)", "Experienced (5+ Yrs Required)"],
-                                index=2
+                                "Target Candidate Hiring Tier",
+                                [
+                                    "🎓 Undergraduate / Student Intern (0 Yrs Exp)",
+                                    "🎓 Graduated Fresher (0-1 Yrs Exp)",
+                                    "💼 Experienced Candidate (1-3 Yrs Exp)",
+                                    "💼 Senior / Lead Experienced (4+ Yrs Exp)"
+                                ],
+                                index=1
                             )
                         with c_j2:
                             req_skills_input = st.text_input("Required Skills (Comma-separated)", value="PyTorch, OpenCV, FastAPI, PostgreSQL, AWS S3, React")
@@ -623,10 +628,10 @@ else:
                         if save_job_btn:
                             from utils import vector_ats_manager
                             skills_list = [s.strip() for s in req_skills_input.split(",") if s.strip()]
-                            min_exp_val = 0 if "Fresher" in exp_level_opt else (1 if "1+" in exp_level_opt else (3 if "3+" in exp_level_opt else 5))
-                            vector_ats_manager.save_job_offer(job_title_input, skills_list, min_exp_val, job_desc_input)
+                            min_exp_val = 0 if ("Undergraduate" in exp_level_opt or "Fresher" in exp_level_opt) else (1 if "1-3" in exp_level_opt else 4)
+                            vector_ats_manager.save_job_offer(job_title_input, skills_list, min_exp_val, job_desc_input, job_type=exp_level_opt)
                             st.session_state["active_feature"] = PAGES[6]
-                            st.toast(f"✅ Saved Job Offer for '{job_title_input}' ({exp_level_opt}) & launched Vector ATS Screener!", icon="🚀")
+                            st.toast(f"✅ Saved Opportunity for '{job_title_input}' ({exp_level_opt}) & launched Vector ATS Screener!", icon="🚀")
                             st.rerun()
             else:
                 st.divider()
@@ -1098,7 +1103,15 @@ else:
                 cj1, cj2 = st.columns(2)
                 with cj1:
                     new_j_title = st.text_input("Opportunity Title *", placeholder="e.g. Healthcare AI Graduate Intern")
-                    new_j_type = st.selectbox("Role Category *", ["🎓 Graduate Internship (0 Yrs Exp)", "🎓 Entry-Level Fresher Job (0-1 Yrs Exp)", "💼 Experienced Professional Role (2+ Yrs Exp)"])
+                    new_j_type = st.selectbox(
+                        "Candidate Qualification Tier *",
+                        [
+                            "🎓 Undergraduate / Student Internship (0 Yrs Exp)",
+                            "🎓 Graduated Fresher Role (0-1 Yrs Exp)",
+                            "💼 Experienced Candidate Role (1-3 Yrs Exp)",
+                            "💼 Senior / Lead Experienced Role (4+ Yrs Exp)"
+                        ]
+                    )
                     new_j_dept = st.selectbox("Department *", ["Healthcare & Medical AI", "Cloud & Infrastructure Operations", "Financial Services & Analytics", "Enterprise SaaS & Mobile Products", "Engineering"])
                 with cj2:
                     new_j_skills = st.text_input("Required Tech Skills (Comma-separated) *", placeholder="e.g. Python, FastAPI, PyTorch, React, PostgreSQL, Docker")
@@ -1108,7 +1121,7 @@ else:
                 if pub_job_btn:
                     if new_j_title.strip() and new_j_skills.strip():
                         skills_lst = [s.strip() for s in new_j_skills.split(",") if s.strip()]
-                        min_exp_val = 0 if ("Internship" in new_j_type or "Fresher" in new_j_type) else 3
+                        min_exp_val = 0 if ("Undergraduate" in new_j_type or "Fresher" in new_j_type or "Internship" in new_j_type) else (1 if "1-3" in new_j_type else 4)
                         vector_ats_manager.save_job_offer(new_j_title.strip(), skills_lst, min_exp_val, new_j_desc.strip(), department=new_j_dept, job_type=new_j_type)
                         st.toast(f"✅ Published opportunity '{new_j_title}'!", icon="🚀")
                         st.success(f"Successfully published **{new_j_title}** ({new_j_type}) to ATS Catalog!")
@@ -1120,14 +1133,14 @@ else:
             c_j_head, c_j_badge = st.columns([3.5, 1.2])
             min_exp = selected_job.get('min_experience', 0)
             j_type = selected_job.get('job_type', 'Full-Time Role')
-            exp_text = "🎓 Fresher / Graduate Internship (0 Yrs Exp)" if min_exp == 0 else f"💼 Experienced ({min_exp}+ Yrs Required)"
+            exp_text = f"🎓 {j_type}" if ("Undergraduate" in j_type or "Fresher" in j_type or min_exp == 0) else f"💼 Experienced ({min_exp}+ Yrs Required)"
 
             with c_j_head:
                 st.markdown(f"### 🎯 **{selected_job.get('title', 'AI Engineering Role')}**")
-                st.markdown(f"**Department:** `{selected_job.get('department', 'Engineering')}` | **Target Level:** `{exp_text}`")
+                st.markdown(f"**Department:** `{selected_job.get('department', 'Engineering')}` | **Qualification Tier:** `{exp_text}`")
             with c_j_badge:
-                if min_exp == 0 or "Internship" in j_type:
-                    st.markdown(f'<span class="badge-avail">🎓 Open for Freshers & Interns</span>', unsafe_allow_html=True)
+                if min_exp == 0 or "Undergraduate" in j_type or "Fresher" in j_type or "Internship" in j_type:
+                    st.markdown(f'<span class="badge-avail">🎓 Open for Students & Freshers</span>', unsafe_allow_html=True)
                 else:
                     st.markdown(f'<span class="badge-part">💼 Experienced Job</span>', unsafe_allow_html=True)
 
@@ -1137,7 +1150,7 @@ else:
         st.divider()
         with st.container(border=True):
             st.markdown("### 📥 Bulk Upload Received External Applicant Resumes (Multi-PDF Vector ATS Screener)")
-            st.caption("No manual entry required! Drag & drop multiple applicant resume PDFs at once. The AI vector engine automatically parses resumes, extracts technical skills, detects code frameworks, and ranks candidates.")
+            st.caption("No manual entry required! Drag & drop multiple applicant resume PDFs at once. The AI vector engine automatically parses resumes, extracts technical skills, detects candidate tiers (Undergraduate, Graduated Fresher, Experienced), and ranks candidates.")
 
             c_u1, c_u2 = st.columns([2.5, 1.5])
             with c_u1:
@@ -1165,11 +1178,11 @@ else:
 
         st.divider()
         st.markdown("### 🏆 External Applicant Shortlist Matrix (Side-by-Side Vector ATS Breakdown)")
-        st.caption("Ranks external candidate resumes by ATS match score, highlights versatile multi-project talent, and displays code frameworks side-by-side with cross-departmental transfer eligibility.")
+        st.caption("Ranks external candidate resumes by ATS match score, highlights candidate qualification tier (Undergraduate, Graduated Fresher, Experienced), and displays code frameworks side-by-side with cross-departmental transfer eligibility.")
 
         ranked_applicants = vector_ats_manager.applicants
         if not ranked_applicants:
-            st.info("ℹ️ **No External Applicant Resumes Uploaded Yet for ATS Screening.**\n\nUpload applicant resume PDFs in the box above to perform automated ATS parsing, extract code frameworks, and rank candidates.")
+            st.info("ℹ️ **No External Applicant Resumes Uploaded Yet for ATS Screening.**\n\nUpload applicant resume PDFs in the box above to perform automated ATS parsing, extract candidate qualification tiers, and generate rankings.")
         else:
             for app in ranked_applicants:
                 cross_matches = vector_ats_manager.get_cross_project_matches(app)
@@ -1181,7 +1194,7 @@ else:
                     with col_left:
                         st.markdown(f"### Rank #{app['ats_rank']} — **{app['name']}** *(External Candidate)*")
                         st.markdown(f"**Applied Position:** `{app['applied_role']}`")
-                        st.markdown(f"**Experience:** `{app['years_experience']} Yrs` | **Email:** `{app['email']}`")
+                        st.markdown(f"**Qualification Tier:** `{app.get('candidate_tier', 'Graduated Fresher')}` | **Email:** `{app['email']}`")
 
                         if is_versatile:
                             st.markdown(
