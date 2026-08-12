@@ -1094,49 +1094,37 @@ else:
             st.caption(f"Job Scope: {selected_job['description']}")
 
         st.divider()
-        st.markdown("### 📥 Upload Received External Applicant Resumes & Analyze Code Frameworks")
-        st.caption("Perform automated vector ATS analysis on external applicants looking to be hired into this project requirement.")
+        with st.container(border=True):
+            st.markdown("### 📥 Bulk Upload Received External Applicant Resumes (Multi-PDF Vector ATS Screener)")
+            st.caption("No manual entry required! Drag & drop multiple applicant resume PDFs at once. The AI vector engine automatically parses resumes, extracts technical skills, detects code frameworks, and ranks candidates.")
 
-        with st.form("ats_external_resume_form", clear_on_submit=True):
-            c_a1, c_a2 = st.columns(2)
-            with c_a1:
-                app_name = st.text_input("External Applicant Full Name *", placeholder="e.g. Elena Rostova")
-                app_email = st.text_input("Applicant Email Address *", placeholder="e.g. elena.r@external-labs.io")
-                app_exp = st.number_input("Years of Professional Experience", min_value=0, max_value=25, value=5)
-                app_skills = st.text_input("Technical Skills (Comma-separated) *", placeholder="e.g. PyTorch, OpenCV, FastAPI, React, PostgreSQL, Docker")
-            with c_a2:
-                app_frameworks = st.text_input("Internal Frameworks & Code Architecture Used", placeholder="e.g. PyTorch 2.0 3D U-Net, OpenCV DICOM pipeline, FastAPI async router")
-                app_links = st.text_input("GitHub Project / Repository Links (Comma-separated)", placeholder="e.g. https://github.com/elena/med-ai-rag, https://github.com/elena/dicom-fastapi")
-                app_bio = st.text_area("Resume Profile Summary", placeholder="Summary of engineering accomplishments, project code frameworks built, and experience...")
-                app_pdf = st.file_uploader("Upload Applicant Resume PDF Document", type=["pdf"])
+            c_u1, c_u2 = st.columns([2.5, 1.5])
+            with c_u1:
+                uploaded_resumes = st.file_uploader(
+                    "Drag & Drop Multiple Applicant Resume PDFs",
+                    type=["pdf"],
+                    accept_multiple_files=True,
+                    key="bulk_ats_pdf_uploader"
+                )
+            with c_u2:
+                st.markdown("#### 🎯 Target Job Posting")
+                target_job_title = st.selectbox(
+                    "Screen Resumes Against:",
+                    [j["title"] for j in vector_ats_manager.job_offers_catalog],
+                    key="bulk_ats_job_select"
+                )
+                run_bulk_ats = st.button("🚀 Process Resumes & Run Vector ATS Audit", type="primary", use_container_width=True)
 
-            submitted_ats = st.form_submit_button("🚀 Run Vector ATS Analysis & Rank External Candidate", type="primary")
-
-            if submitted_ats:
-                if app_name.strip() and app_skills.strip():
-                    skills_list = [s.strip() for s in app_skills.split(",") if s.strip()]
-                    links_list = [l.strip() for l in app_links.split(",") if l.strip()]
-                    frameworks_list = [f.strip() for f in app_frameworks.split(",") if f.strip()]
-
-                    new_app = vector_ats_manager.screen_and_rank_applicant(
-                        name=app_name.strip(),
-                        email=app_email.strip(),
-                        skills=skills_list,
-                        years_exp=app_exp,
-                        bio_text=app_bio.strip(),
-                        project_links=links_list,
-                        frameworks=frameworks_list,
-                        selected_job_title=selected_job_title
-                    )
-                    st.toast(f"✅ Screened external resume for {app_name}! ATS Score: {new_app['ats_match_score']}% (Rank #{new_app['ats_rank']})", icon="🎯")
-                    st.success(f"Successfully processed external resume for **{app_name}**! ATS Rank: **#{new_app['ats_rank']}** with **{new_app['ats_match_score']}% Match**.")
-                    st.rerun()
-                else:
-                    st.error("Applicant Name and Technical Skills are required.")
+            if run_bulk_ats and uploaded_resumes:
+                for pdf in uploaded_resumes:
+                    vector_ats_manager.process_pdf_resume(pdf, target_job_title)
+                st.toast(f"✅ Processed {len(uploaded_resumes)} resumes with Vector ATS!", icon="🚀")
+                st.success(f"Successfully processed and ranked {len(uploaded_resumes)} applicant resumes for **{target_job_title}**!")
+                st.rerun()
 
         st.divider()
-        st.markdown("### 🏆 External Applicant Shortlist Matrix (Percentage-Based Ranking)")
-        st.caption("Ranks external candidate resumes by ATS match score against selected job requirements, highlights versatile multi-project talent, and detects transfer eligibility.")
+        st.markdown("### 🏆 External Applicant Shortlist Matrix (Side-by-Side Vector ATS Breakdown)")
+        st.caption("Ranks external candidate resumes by ATS match score, highlights versatile multi-project talent, and displays code frameworks side-by-side with cross-departmental transfer eligibility.")
 
         ranked_applicants = vector_ats_manager.applicants
         for app in ranked_applicants:
@@ -1144,61 +1132,68 @@ else:
             is_versatile = (len(cross_matches) >= 2)
 
             with st.container(border=True):
-                r_c1, r_c2 = st.columns([3.5, 1.2])
-                with r_c1:
-                    st.markdown(f"### Rank #{app['ats_rank']} — **{app['name']}** *(External Applicant)*")
-                    st.markdown(f"**Applied Position:** `{app['applied_role']}` | **Experience:** `{app['years_experience']} Yrs` | **Email:** `{app['email']}`")
+                col_left, col_right = st.columns([1.15, 1.0])
+
+                with col_left:
+                    st.markdown(f"### Rank #{app['ats_rank']} — **{app['name']}** *(External Candidate)*")
+                    st.markdown(f"**Applied Position:** `{app['applied_role']}`")
+                    st.markdown(f"**Experience:** `{app['years_experience']} Yrs` | **Email:** `{app['email']}`")
+
                     if is_versatile:
                         st.markdown(
-                            f'<div style="background: rgba(245, 158, 11, 0.22); color: #FBBF24; padding: 0.35rem 0.75rem; border-radius: 0.5rem; font-weight: 700; font-size: 0.88rem; display: inline-block; margin-top: 0.35rem; border: 1px solid rgba(245, 158, 11, 0.4);">'
-                            f'🌟 VERSATILE MULTI-PROJECT TOP TALENT — Matched to {len(cross_matches)} Departmental Projects!'
+                            f'<div style="background: rgba(245, 158, 11, 0.2); color: #FBBF24; padding: 0.35rem 0.65rem; border-radius: 0.5rem; font-weight: 700; font-size: 0.82rem; margin-top: 0.35rem; margin-bottom: 0.5rem;">'
+                            f'🌟 VERSATILE TOP TALENT — Matched to {len(cross_matches)} Departmental Projects!'
                             '</div>',
                             unsafe_allow_html=True
                         )
-                with r_c2:
-                    st.metric("Vector ATS Match Score", f"{app['ats_match_score']}%")
-                    st.progress(min(1.0, max(0.0, app['ats_match_score'] / 100.0)))
 
-                st.markdown(f"**Verified Technical Skills:** {', '.join(app['verified_strengths'])}")
-                if app.get("skill_gaps"):
-                    st.markdown(f"**Identified Skill Gaps:** {', '.join(app['skill_gaps'])}")
+                    m1, m2 = st.columns([1.5, 2.5])
+                    with m1:
+                        st.metric("Vector ATS Score", f"{app['ats_match_score']}%")
+                    with m2:
+                        st.caption("Match Confidence Alignment")
+                        st.progress(min(1.0, max(0.0, app['ats_match_score'] / 100.0)))
 
-                st.markdown("#### 💻 Analyzed Code Frameworks & Repository Links")
-                fw_tags = "".join([f'<span style="background-color: rgba(96, 165, 250, 0.15); color: #60A5FA; padding: 0.25rem 0.65rem; border-radius: 0.375rem; font-size: 0.82rem; font-weight: 600; margin-right: 0.4rem; margin-bottom: 0.4rem; display: inline-block;">⚙️ {fw}</span>' for fw in app['internal_frameworks_used']])
-                st.markdown(fw_tags, unsafe_allow_html=True)
+                    st.markdown(f"**Verified Technical Skills:** {', '.join(app['verified_strengths'])}")
+                    if app.get("skill_gaps"):
+                        st.markdown(f"**Identified Skill Gaps:** {', '.join(app['skill_gaps'])}")
 
-                if app.get("github_project_links"):
-                    links_str = " • ".join([f"[{link}]({link})" for link in app['github_project_links']])
-                    st.markdown(f"**GitHub Repositories:** {links_str}")
+                    st.info(f"**Resume Profile Summary:** {app['resume_summary']}")
 
-                # Cross-Project Department Matching Breakdown
-                st.markdown("#### 🏢 Cross-Departmental Project Match Matrix & Transfer Eligibility")
-                if cross_matches:
-                    for c_match in cross_matches:
-                        p_score = c_match['match_percentage']
-                        p_badge = "#34D399" if p_score >= 88.0 else "#60A5FA"
-                        st.markdown(
-                            f"• **{c_match['department']}** → `{c_match['project_title']}` | "
-                            f"Match: <span style='color:{p_badge}; font-weight:800;'>{p_score}%</span> | "
-                            f"Matching Skills: `{', '.join(c_match['matching_skills'])}`",
-                            unsafe_allow_html=True
-                        )
-                else:
-                    st.caption("No additional cross-departmental project matches above 75% threshold.")
+                with col_right:
+                    st.markdown("#### 💻 Analyzed Code Frameworks & Repositories")
+                    fw_tags = "".join([f'<span style="background-color: rgba(96, 165, 250, 0.15); color: #60A5FA; padding: 0.2rem 0.55rem; border-radius: 0.375rem; font-size: 0.78rem; font-weight: 600; margin-right: 0.35rem; margin-bottom: 0.35rem; display: inline-block;">⚙️ {fw}</span>' for fw in app['internal_frameworks_used']])
+                    st.markdown(fw_tags, unsafe_allow_html=True)
 
-                st.info(f"**Resume Profile Summary:** {app['resume_summary']}")
+                    if app.get("github_project_links"):
+                        links_str = " • ".join([f"[{link}]({link})" for link in app['github_project_links']])
+                        st.markdown(f"**GitHub Repositories:** {links_str}")
 
-                c_action1, c_action2 = st.columns([2, 2])
-                with c_action1:
-                    if st.button(f"✅ Issue Hiring Offer to {app['name']}", key=f"shortlist_{app['applicant_id']}", type="primary"):
-                        st.toast(f"🎉 Issued hiring offer to {app['name']}!", icon="✅")
-                        st.success(f"External Candidate **{app['name']}** marked as **Shortlisted for Hiring Offer**!")
-                with c_action2:
+                    st.markdown("#### 🏢 Cross-Departmental Transfer Eligibility")
                     if cross_matches:
-                        target_dept = cross_matches[0]["department"]
-                        if st.button(f"🔀 Consider for {target_dept} Role", key=f"transfer_{app['applicant_id']}"):
-                            st.toast(f"🔀 Cross-assigned {app['name']} to {target_dept} candidate pool!", icon="✨")
-                            st.success(f"External Candidate **{app['name']}** cross-assigned to **{target_dept}**!")
+                        for c_match in cross_matches:
+                            p_score = c_match['match_percentage']
+                            p_badge = "#34D399" if p_score >= 88.0 else "#60A5FA"
+                            st.markdown(
+                                f"• **{c_match['department']}** → `{c_match['project_title']}` | "
+                                f"Match: <span style='color:{p_badge}; font-weight:800;'>{p_score}%</span>",
+                                unsafe_allow_html=True
+                            )
+                    else:
+                        st.caption("No cross-departmental project matches above 75%.")
+
+                    st.divider()
+                    b1, b2 = st.columns(2)
+                    with b1:
+                        if st.button(f"✅ Issue Hiring Offer", key=f"shortlist_{app['applicant_id']}", type="primary", use_container_width=True):
+                            st.toast(f"🎉 Issued hiring offer to {app['name']}!", icon="✅")
+                            st.success(f"External Candidate **{app['name']}** marked as **Shortlisted for Hiring Offer**!")
+                    with b2:
+                        if cross_matches:
+                            target_dept = cross_matches[0]["department"]
+                            if st.button(f"🔀 Assign to {target_dept[:12]}...", key=f"transfer_{app['applicant_id']}", use_container_width=True):
+                                st.toast(f"🔀 Cross-assigned {app['name']} to {target_dept} candidate pool!", icon="✨")
+                                st.success(f"External Candidate **{app['name']}** cross-assigned to **{target_dept}**!")
 
     # ==========================================
     # SINGLE FIXED BOTTOM FOOTER
