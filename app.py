@@ -609,7 +609,11 @@ else:
                         c_j1, c_j2 = st.columns(2)
                         with c_j1:
                             job_title_input = st.text_input("Target Online Job Title", value="Senior Healthcare AI & Medical Imaging Engineer")
-                            min_exp_input = st.number_input("Minimum Years Experience Required", min_value=1, max_value=20, value=4)
+                            exp_level_opt = st.selectbox(
+                                "Target Experience Hiring Level",
+                                ["Fresher (0 Yrs Exp / Entry Level)", "Experienced (1+ Yrs Required)", "Experienced (3+ Yrs Required)", "Experienced (5+ Yrs Required)"],
+                                index=2
+                            )
                         with c_j2:
                             req_skills_input = st.text_input("Required Skills (Comma-separated)", value="PyTorch, OpenCV, FastAPI, PostgreSQL, AWS S3, React")
                             job_desc_input = st.text_area("Job Scope Description", value=project_desc if project_desc else "Healthcare AI diagnostic platform requiring DICOM processing, PyTorch, and FastAPI...", height=80)
@@ -619,9 +623,10 @@ else:
                         if save_job_btn:
                             from utils import vector_ats_manager
                             skills_list = [s.strip() for s in req_skills_input.split(",") if s.strip()]
-                            vector_ats_manager.save_job_offer(job_title_input, skills_list, min_exp_input, job_desc_input)
+                            min_exp_val = 0 if "Fresher" in exp_level_opt else (1 if "1+" in exp_level_opt else (3 if "3+" in exp_level_opt else 5))
+                            vector_ats_manager.save_job_offer(job_title_input, skills_list, min_exp_val, job_desc_input)
                             st.session_state["active_feature"] = PAGES[6]
-                            st.toast(f"✅ Saved Job Offer for '{job_title_input}' & launched Vector ATS Screener!", icon="🚀")
+                            st.toast(f"✅ Saved Job Offer for '{job_title_input}' ({exp_level_opt}) & launched Vector ATS Screener!", icon="🚀")
                             st.rerun()
             else:
                 st.divider()
@@ -1084,14 +1089,20 @@ else:
 
         with st.container(border=True):
             c_j_head, c_j_badge = st.columns([3.5, 1.2])
-            with c_j_head:
-                st.markdown(f"### 🎯 **{selected_job['title']}**")
-                st.markdown(f"**Department:** `{selected_job['department']}` | **Min Experience:** `{selected_job['min_experience']}+ Years`")
-            with c_j_badge:
-                st.markdown(f'<span class="badge-avail">Active External Job</span>', unsafe_allow_html=True)
+            min_exp = selected_job.get('min_experience', 0)
+            exp_text = "🎓 Fresher (0 Yrs Exp / Entry Level)" if min_exp == 0 else f"💼 Experienced ({min_exp}+ Yrs Required)"
 
-            st.markdown(f"**Required Tech Stack:** `{', '.join(selected_job['required_skills'])}`")
-            st.caption(f"Job Scope: {selected_job['description']}")
+            with c_j_head:
+                st.markdown(f"### 🎯 **{selected_job.get('title', 'AI Engineering Role')}**")
+                st.markdown(f"**Department:** `{selected_job.get('department', 'Engineering')}` | **Target Level:** `{exp_text}`")
+            with c_j_badge:
+                if min_exp == 0:
+                    st.markdown(f'<span class="badge-avail">🎓 Open for Freshers</span>', unsafe_allow_html=True)
+                else:
+                    st.markdown(f'<span class="badge-part">💼 Experienced Job</span>', unsafe_allow_html=True)
+
+            st.markdown(f"**Required Tech Stack:** `{', '.join(selected_job.get('required_skills', []))}`")
+            st.caption(f"Job Scope: {selected_job.get('description', '')}")
 
         st.divider()
         with st.container(border=True):

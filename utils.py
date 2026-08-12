@@ -584,6 +584,8 @@ ACTIVE_DEPARTMENT_PROJECTS = [
         "department": "Healthcare & Medical AI",
         "title": "Healthcare AI Diagnostic & Imaging Pipeline",
         "required_skills": ["PyTorch", "OpenCV", "FastAPI", "DICOM Pipeline", "PostgreSQL", "React", "Docker", "HIPAA Compliance"],
+        "min_experience": 4,
+        "experience_level": "Experienced (4+ Yrs)",
         "description": "HIPAA-compliant medical imaging analytics platform with PyTorch segmentation models and FastAPI backends."
     },
     {
@@ -591,6 +593,8 @@ ACTIVE_DEPARTMENT_PROJECTS = [
         "department": "Cloud & Infrastructure Operations",
         "title": "Enterprise Kubernetes & AWS CDK Platform",
         "required_skills": ["AWS CDK", "Kubernetes", "Docker", "Python", "Terraform", "CI/CD", "FastAPI", "PostgreSQL"],
+        "min_experience": 5,
+        "experience_level": "Experienced (5+ Yrs)",
         "description": "High-availability cloud infrastructure automation, Kubernetes cluster provisioning, and CI/CD pipelines."
     },
     {
@@ -598,14 +602,18 @@ ACTIVE_DEPARTMENT_PROJECTS = [
         "department": "Financial Services & Analytics",
         "title": "FinTech Real-Time Transaction Analytics Engine",
         "required_skills": ["Python", "PostgreSQL", "Kafka", "Redis", "Advanced SQL", "FastAPI", "React", "Docker"],
-        "description": "High-throughput financial analytics engine processing real-time transactional data feeds."
+        "min_experience": 0,
+        "experience_level": "Fresher (0 Yrs / Entry Level)",
+        "description": "High-throughput financial analytics engine processing real-time transactional data feeds. Open for Freshers!"
     },
     {
         "project_id": "proj_saas_mobile",
         "department": "Enterprise SaaS & Mobile Products",
         "title": "Cross-Platform SaaS Microservices Portal",
         "required_skills": ["React", "TypeScript", "Node.js", "FastAPI", "Tailwind CSS", "Jest", "MongoDB"],
-        "description": "Multi-tenant enterprise SaaS web portal with accessible React UI component libraries."
+        "min_experience": 0,
+        "experience_level": "Fresher (0 Yrs / Entry Level)",
+        "description": "Multi-tenant enterprise SaaS web portal with accessible React UI component libraries. Open for Freshers!"
     }
 ]
 
@@ -668,6 +676,25 @@ INITIAL_ATS_APPLICANTS = [
         "skill_gaps": ["Lacks PyTorch / OpenCV medical segmentation experience"],
         "ats_rank": 3,
         "status": "On Hold for DevOps Role"
+    },
+    {
+        "applicant_id": "ats_104",
+        "name": "Rohan Deshmukh",
+        "email": "rohan.d@fresher-grad.edu",
+        "applied_role": "FinTech Real-Time Transaction Analytics Engine",
+        "ats_match_score": 92.5,
+        "years_experience": 0,
+        "skills": ["Python", "FastAPI", "SQL", "PostgreSQL", "React", "Docker"],
+        "internal_frameworks_used": [
+            "FastAPI REST API Graduate Project",
+            "PostgreSQL Relational Schema Design"
+        ],
+        "github_project_links": ["https://github.com/rohandeshmukh/fintech-api"],
+        "resume_summary": "Computer Science Graduate (Fresher, 0 Yrs Exp). Top academic performer with hands-on FastAPI, SQL, and Docker project portfolio.",
+        "verified_strengths": ["Strong foundational CS algorithms", "FastAPI & Python project portfolio", "Clean PostgreSQL database queries"],
+        "skill_gaps": ["0 Yrs Corporate Experience (Entry Level Fresher)"],
+        "ats_rank": 4,
+        "status": "Shortlisted for Graduate Hiring Role"
     }
 ]
 
@@ -792,9 +819,11 @@ class VectorATSManager:
         req_set = set([s.lower() for s in target_job.get("required_skills", [])])
         cand_set = set([s.lower() for s in skills])
         
-        matches = req_set.intersection(cand_set)
-        match_ratio = len(matches) / max(len(req_set), 1)
-        exp_score = min(1.0, years_exp / max(target_job.get("min_experience", 4), 1))
+        min_req_exp = target_job.get("min_experience", 0)
+        if min_req_exp == 0:
+            exp_score = 1.0
+        else:
+            exp_score = min(1.0, years_exp / max(min_req_exp, 1))
         
         score = round(min(98.5, max(65.0, (match_ratio * 60.0) + (exp_score * 30.0) + 8.5)), 1)
         
