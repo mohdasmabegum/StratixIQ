@@ -441,17 +441,11 @@ else:
     active_page = st.session_state.get("active_feature", PAGES[0])
 
     # ==========================================
-    # PAGE 1: SINGLE CANDIDATE MATCHING ENGINE
+    # PAGE 1: SINGLE CANDIDATE MATCHING ENGINE & FEATURE HUB
     # ==========================================
     if active_page == PAGES[0]:
-        c_p0_back, c_p0_head = st.columns([1.2, 8.8])
-        with c_p0_back:
-            if st.button("⬅️", key="back_btn_p0", type="secondary", help="Return to Main Dashboard"):
-                st.session_state["active_feature"] = PAGES[0]
-                st.rerun()
-        with c_p0_head:
-            st.subheader("🎯 Match Engineering Requirements to Internal Talent Pool")
-            st.caption("Perform semantic vector retrieval, explainable AI feature weighting, and automated gap remediation.")
+        st.subheader("🎯 Match Engineering Requirements to Internal Talent Pool")
+        st.caption("Perform semantic vector retrieval, explainable AI feature weighting, and automated gap remediation.")
 
         # Interactive Feature Access Cards Grid on Main Dashboard
         with st.expander("🚀 Explore All Enterprise AI Feature Modules", expanded=True):
@@ -771,6 +765,7 @@ else:
                 st.rerun()
         with c_p2_head:
             st.subheader("📥 Ingest Resume & Explore Internal Talent Pool Roster Matrix")
+            st.caption("Ingest candidate resumes into ChromaDB vector store and explore internal employee profiles.")
         
         with st.form("t3_upload_form", clear_on_submit=True):
             c1, c2 = st.columns(2)
@@ -840,32 +835,24 @@ else:
         for idx, cand in enumerate(roster):
             col = cols[idx % 2]
             with col:
-                status_color = "#34D399"
-                status_bg = "rgba(16, 185, 129, 0.2)"
+                status_class = "badge-avail"
                 if "Assigned" in cand["bandwidth_status"]:
-                    status_color = "#FBBF24"
-                    status_bg = "rgba(245, 158, 11, 0.2)"
+                    status_class = "badge-assigned"
                 elif "Part-time" in cand["bandwidth_status"]:
-                    status_color = "#C084FC"
-                    status_bg = "rgba(139, 92, 246, 0.2)"
-                    
-                skills_tags = "".join([f'<span style="background-color: rgba(59, 130, 246, 0.15); color: #60A5FA; padding: 0.2rem 0.55rem; border-radius: 0.375rem; font-size: 0.78rem; font-weight: 600; margin-right: 0.35rem; margin-bottom: 0.35rem; display: inline-block;">{s}</span>' for s in cand['skills']])
-                
-                card_html = (
-                    '<div class="metric-card" style="background-color: rgba(30, 41, 59, 0.75); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 0.85rem; padding: 1.25rem; margin-bottom: 1rem;">'
-                    '<div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.4rem;">'
-                    f'<h3 style="margin: 0; font-size: 1.35rem; font-weight: 800; color: #F8FAFC;">{cand["name"]}</h3>'
-                    f'<span style="background-color: {status_bg}; color: {status_color}; padding: 0.2rem 0.6rem; border-radius: 0.375rem; font-size: 0.8rem; font-weight: 600;">{cand["bandwidth_status"]}</span>'
-                    '</div>'
-                    f'<p style="margin: 0 0 0.6rem 0; font-size: 0.95rem; color: #94A3B8; font-weight: 600;">{cand["role"]} • {cand.get("years_experience", 5)} Yrs Experience</p>'
-                    f'<p style="margin: 0 0 0.85rem 0; font-size: 0.9rem; color: #CBD5E1; line-height: 1.45;">{cand.get("bio", "Indexed candidate profile.")}</p>'
-                    '<div style="border-top: 1px solid rgba(255, 255, 255, 0.08); padding-top: 0.65rem;">'
-                    '<div style="font-size: 0.8rem; font-weight: 700; color: #94A3B8; margin-bottom: 0.35rem;">Verified Skills & Tech Stack:</div>'
-                    f'<div>{skills_tags}</div>'
-                    '</div>'
-                    '</div>'
-                )
-                st.markdown(card_html, unsafe_allow_html=True)
+                    status_class = "badge-part"
+
+                with st.container(border=True):
+                    c_n, c_b = st.columns([3, 1.2])
+                    with c_n:
+                        st.markdown(f"### **{cand['name']}**")
+                        st.markdown(f"**{cand['role']}** • `{cand.get('years_experience', 5)} Yrs Experience`")
+                    with c_b:
+                        st.markdown(f'<span class="{status_class}">{cand["bandwidth_status"]}</span>', unsafe_allow_html=True)
+
+                    st.caption(cand.get("bio", "Indexed candidate profile."))
+                    st.markdown("**Verified Skills & Tech Stack:**")
+                    skills_tags = "".join([f'<span style="background-color: rgba(59, 130, 246, 0.15); color: #60A5FA; padding: 0.2rem 0.55rem; border-radius: 0.375rem; font-size: 0.78rem; font-weight: 600; margin-right: 0.35rem; margin-bottom: 0.35rem; display: inline-block;">{s}</span>' for s in cand['skills']])
+                    st.markdown(skills_tags, unsafe_allow_html=True)
 
     # ==========================================
     # PAGE 4: CANDIDATE CAREER GROWTH AUDIT
@@ -944,9 +931,9 @@ else:
     # PAGE 5: HISTORICAL PROJECT PERFORMANCE FEEDBACK LOOP
     # ==========================================
     elif active_page == PAGES[4]:
-        c_p4_back, c_p4_head = st.columns([2.4, 7.6])
+        c_p4_back, c_p4_head = st.columns([1.2, 8.8])
         with c_p4_back:
-            if st.button("⬅️ Back to Main", key="back_btn_p4", type="secondary", use_container_width=True):
+            if st.button("⬅️", key="back_btn_p4", type="secondary", help="Return to Main Dashboard"):
                 st.session_state["active_feature"] = PAGES[0]
                 st.rerun()
         with c_p4_head:
@@ -1011,6 +998,7 @@ else:
                 st.rerun()
         with c_p5_head:
             st.subheader("🛡️ Enterprise Knowledge Graph & HR AI Algorithmic Fairness Auditor")
+            st.caption("Verify EU AI Act compliance certificates, demographic proxy elimination, and candidate-skill network cluster graphs.")
         
         kg_col, f_col = st.columns(2)
         
