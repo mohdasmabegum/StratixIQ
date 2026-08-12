@@ -767,20 +767,33 @@ class VectorATSManager:
 
         extracted_text = ""
         try:
+            if hasattr(pdf_file, "seek"):
+                pdf_file.seek(0)
             pdf_bytes = pdf_file.read()
-            import fitz
-            doc = fitz.open(stream=pdf_bytes, filetype="pdf")
-            for page in doc:
-                extracted_text += page.get_text() + " "
+            if hasattr(pdf_file, "seek"):
+                pdf_file.seek(0)
+            
+            try:
+                import fitz
+                doc = fitz.open(stream=pdf_bytes, filetype="pdf")
+                for page in doc:
+                    extracted_text += page.get_text() + " "
+            except Exception:
+                raw_str = pdf_bytes.decode("latin1", errors="ignore")
+                matches = re.findall(r'\((.*?)\)\s*TJ', raw_str) or re.findall(r'\((.*?)\)\s*Tj', raw_str)
+                if matches:
+                    extracted_text = " ".join(matches)
+                else:
+                    extracted_text = raw_str
         except Exception:
-            extracted_text = f"Parsed resume payload for {clean_name}."
+            extracted_text = f"Parsed resume document payload for {clean_name}."
 
+        text_lower = extracted_text.lower()
         tech_vocab = {"python", "pytorch", "opencv", "fastapi", "postgresql", "aws", "react", "docker", "kubernetes", "typescript", "node.js", "kafka", "redis", "dicom", "sql", "hipaa", "terraform", "c++", "mlops"}
         found_skills = []
-        text_lower = extracted_text.lower()
         for tech in tech_vocab:
             if tech in text_lower or tech in clean_name.lower():
-                found_skills.append(tech.upper() if tech in ["aws", "sql"] else tech.title())
+                found_skills.append(tech.upper() if tech in ["aws", "sql", "c++"] else tech.title())
 
         target_job = self.set_active_job_by_title(selected_job_title)
         if not found_skills:
@@ -803,7 +816,6 @@ class VectorATSManager:
             frameworks = [f"{req_skill_first} Core Engineering Module", "Docker Microservice Architecture"]
 
         min_exp_req = target_job.get("min_experience", 0)
-        
         if min_exp_req == 0:
             if any(term in text_lower for term in ["undergraduate", "student", "intern", "pursuing"]):
                 detected_exp = 0
@@ -822,7 +834,7 @@ class VectorATSManager:
             email=sanitized_email,
             skills=found_skills,
             years_exp=detected_exp,
-            bio_text=extracted_text[:180] + "..." if len(extracted_text) > 50 else f"Ingested external resume PDF '{filename}' for ATS screening.",
+            bio_text=extracted_text[:220] + "..." if len(extracted_text) > 50 else f"Ingested external resume PDF '{filename}' for ATS screening.",
             project_links=[f"https://github.com/{clean_name.lower().replace(' ', '')}/project-repo"],
             frameworks=frameworks,
             selected_job_title=selected_job_title,

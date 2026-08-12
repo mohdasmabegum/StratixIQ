@@ -1224,21 +1224,23 @@ else:
                 run_bulk_ats = st.button("🚀 Process Resumes & Run Vector ATS Audit", type="primary", use_container_width=True)
 
             if uploaded_resumes:
-                already_processed_count = len(st.session_state.get("ats_applicants_store", []))
-                should_process = run_bulk_ats or (already_processed_count < len(uploaded_resumes))
+                current_job_tag = target_job_title
+                last_job_tag = st.session_state.get("last_processed_job")
+                store_count = len(st.session_state.get("ats_applicants_store", []))
 
-                if should_process:
-                    st.session_state["ats_applicants_store"] = []
+                if run_bulk_ats or store_count == 0 or store_count != len(uploaded_resumes) or last_job_tag != current_job_tag:
+                    processed_list = []
                     for pdf in uploaded_resumes:
                         res = vector_ats_manager.process_pdf_resume(pdf, target_job_title)
-                        st.session_state["ats_applicants_store"].append(res)
+                        processed_list.append(res)
                     
-                    st.session_state["ats_applicants_store"].sort(key=lambda x: x["ats_match_score"], reverse=True)
-                    for r_idx, app_item in enumerate(st.session_state["ats_applicants_store"]):
+                    processed_list.sort(key=lambda x: x["ats_match_score"], reverse=True)
+                    for r_idx, app_item in enumerate(processed_list):
                         app_item["ats_rank"] = r_idx + 1
 
-                    st.toast(f"✅ Processed {len(uploaded_resumes)} resumes with Vector ATS!", icon="🚀")
-                    st.rerun()
+                    st.session_state["ats_applicants_store"] = processed_list
+                    st.session_state["last_processed_job"] = target_job_title
+                    st.toast(f"✅ Processed {len(processed_list)} resumes with Vector ATS!", icon="🚀")
 
         st.divider()
         st.markdown("### 🏆 External Applicant Shortlist Matrix (Side-by-Side Vector ATS Breakdown)")
