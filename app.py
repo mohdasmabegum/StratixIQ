@@ -1255,68 +1255,87 @@ else:
                 is_versatile = (len(cross_matches) >= 2)
 
                 with st.container(border=True):
-                    col_left, col_right = st.columns([1.15, 1.0])
-
-                    with col_left:
+                    # Candidate Header Card
+                    h_c1, h_c2 = st.columns([3.5, 1.2])
+                    with h_c1:
                         st.markdown(f"### Rank #{app['ats_rank']} — **{app['name']}** *(External Candidate)*")
-                        st.markdown(f"**Applied Position:** `{app['applied_role']}`")
-                        st.markdown(f"**Qualification Tier:** `{app.get('candidate_tier', 'Graduated Fresher')}` | **Email:** `{app['email']}`")
-
+                        st.markdown(f"**Applied Position:** `{app['applied_role']}` | **Tier:** `{app.get('candidate_tier', 'Graduated Fresher')}`")
                         if is_versatile:
                             st.markdown(
-                                f'<div style="background: rgba(245, 158, 11, 0.2); color: #FBBF24; padding: 0.35rem 0.65rem; border-radius: 0.5rem; font-weight: 700; font-size: 0.82rem; margin-top: 0.35rem; margin-bottom: 0.5rem;">'
+                                f'<div style="background: rgba(245, 158, 11, 0.2); color: #FBBF24; padding: 0.35rem 0.65rem; border-radius: 0.5rem; font-weight: 700; font-size: 0.82rem; margin-top: 0.2rem; display: inline-block;">'
                                 f'🌟 VERSATILE TOP TALENT — Matched to {len(cross_matches)} Departmental Projects!'
                                 '</div>',
                                 unsafe_allow_html=True
                             )
+                    with h_c2:
+                        st.caption(f"Contact: `{app['email']}`")
+                        st.caption(f"Experience: `{app['years_experience']} Yrs`")
 
-                        m1, m2 = st.columns([1.5, 2.5])
-                        with m1:
-                            st.metric("Vector ATS Score", f"{app['ats_match_score']}%")
-                        with m2:
-                            st.caption("Match Confidence Alignment")
-                            st.progress(min(1.0, max(0.0, app['ats_match_score'] / 100.0)))
+                    col_left, col_right = st.columns([1.1, 1.0])
 
-                        st.markdown(f"**Verified Technical Skills:** {', '.join(app['verified_strengths'])}")
-                        if app.get("skill_gaps"):
-                            st.markdown(f"**Identified Skill Gaps:** {', '.join(app['skill_gaps'])}")
+                    with col_left:
+                        # Sub-Card 1: ATS Score & Confidence
+                        with st.container(border=True):
+                            st.markdown("#### 🎯 Vector ATS Match Alignment")
+                            m1, m2 = st.columns([1.5, 2.5])
+                            with m1:
+                                st.metric("ATS Score", f"{app['ats_match_score']}%")
+                            with m2:
+                                st.caption("Match Confidence Alignment")
+                                st.progress(min(1.0, max(0.0, app['ats_match_score'] / 100.0)))
 
-                        st.info(f"**Resume Profile Summary:** {app['resume_summary']}")
+                        # Sub-Card 2: Technical Skills & Skill Gaps
+                        with st.container(border=True):
+                            st.markdown("#### 💡 Technical Competencies & Identified Gaps")
+                            st.markdown(f"**Verified Strengths:** `{', '.join(app['verified_strengths'])}`")
+                            if app.get("skill_gaps"):
+                                st.markdown(f"**Identified Skill Gaps:** `{', '.join(app['skill_gaps'])}`")
+
+                        # Sub-Card 3: Profile Summary
+                        with st.container(border=True):
+                            st.markdown("#### 📝 Candidate Resume Profile Summary")
+                            st.caption(app['resume_summary'])
 
                     with col_right:
-                        st.markdown("#### 💻 Analyzed Code Frameworks & Repositories")
-                        fw_tags = "".join([f'<span style="background-color: rgba(96, 165, 250, 0.15); color: #60A5FA; padding: 0.2rem 0.55rem; border-radius: 0.375rem; font-size: 0.78rem; font-weight: 600; margin-right: 0.35rem; margin-bottom: 0.35rem; display: inline-block;">⚙️ {fw}</span>' for fw in app['internal_frameworks_used']])
-                        st.markdown(fw_tags, unsafe_allow_html=True)
+                        # Sub-Card 4: Code Internal Frameworks & Repositories
+                        with st.container(border=True):
+                            st.markdown("#### 💻 Analyzed Code Frameworks & Repositories")
+                            fw_tags = "".join([f'<span style="background-color: rgba(96, 165, 250, 0.15); color: #60A5FA; padding: 0.2rem 0.55rem; border-radius: 0.375rem; font-size: 0.78rem; font-weight: 600; margin-right: 0.35rem; margin-bottom: 0.35rem; display: inline-block;">⚙️ {fw}</span>' for fw in app['internal_frameworks_used']])
+                            st.markdown(fw_tags, unsafe_allow_html=True)
 
-                        if app.get("github_project_links"):
-                            links_str = " • ".join([f"[{link}]({link})" for link in app['github_project_links']])
-                            st.markdown(f"**GitHub Repositories:** {links_str}")
+                            if app.get("github_project_links"):
+                                links_str = " • ".join([f"[{link}]({link})" for link in app['github_project_links']])
+                                st.markdown(f"**GitHub Repositories:** {links_str}")
 
-                        st.markdown("#### 🏢 Cross-Departmental Transfer Eligibility")
-                        if cross_matches:
-                            for c_match in cross_matches:
-                                p_score = c_match['match_percentage']
-                                p_badge = "#34D399" if p_score >= 88.0 else "#60A5FA"
-                                st.markdown(
-                                    f"• **{c_match['department']}** → `{c_match['project_title']}` | "
-                                    f"Match: <span style='color:{p_badge}; font-weight:800;'>{p_score}%</span>",
-                                    unsafe_allow_html=True
-                                )
-                        else:
-                            st.caption("No cross-departmental project matches above 75%.")
-
-                        st.divider()
-                        b1, b2 = st.columns(2)
-                        with b1:
-                            if st.button(f"✅ Issue Hiring Offer", key=f"shortlist_{app['applicant_id']}", type="primary", use_container_width=True):
-                                st.toast(f"🎉 Issued hiring offer to {app['name']}!", icon="✅")
-                                st.success(f"External Candidate **{app['name']}** marked as **Shortlisted for Hiring Offer**!")
-                        with b2:
+                        # Sub-Card 5: Cross-Departmental Transfer Matrix
+                        with st.container(border=True):
+                            st.markdown("#### 🏢 Cross-Departmental Transfer Matrix")
                             if cross_matches:
-                                target_dept = cross_matches[0]["department"]
-                                if st.button(f"🔀 Assign to {target_dept[:12]}...", key=f"transfer_{app['applicant_id']}", use_container_width=True):
-                                    st.toast(f"🔀 Cross-assigned {app['name']} to {target_dept} candidate pool!", icon="✨")
-                                    st.success(f"External Candidate **{app['name']}** cross-assigned to **{target_dept}**!")
+                                for c_match in cross_matches:
+                                    p_score = c_match['match_percentage']
+                                    p_badge = "#34D399" if p_score >= 88.0 else "#60A5FA"
+                                    st.markdown(
+                                        f"• **{c_match['department']}** → `{c_match['project_title']}` | "
+                                        f"Match: <span style='color:{p_badge}; font-weight:800;'>{p_score}%</span>",
+                                        unsafe_allow_html=True
+                                    )
+                            else:
+                                st.caption("No cross-departmental project matches above 75%.")
+
+                        # Sub-Card 6: Action Decision Controls
+                        with st.container(border=True):
+                            st.markdown("#### ⚡ Hiring Action Controls")
+                            b1, b2 = st.columns(2)
+                            with b1:
+                                if st.button(f"✅ Issue Offer", key=f"shortlist_{app['applicant_id']}", type="primary", use_container_width=True):
+                                    st.toast(f"🎉 Issued hiring offer to {app['name']}!", icon="✅")
+                                    st.success(f"Candidate **{app['name']}** Shortlisted for Offer!")
+                            with b2:
+                                if cross_matches:
+                                    target_dept = cross_matches[0]["department"]
+                                    if st.button(f"🔀 Transfer Role", key=f"transfer_{app['applicant_id']}", use_container_width=True):
+                                        st.toast(f"🔀 Assigned {app['name']} to {target_dept}!", icon="✨")
+                                        st.success(f"Candidate **{app['name']}** transferred to **{target_dept}**!")
 
     # ==========================================
     # SINGLE FIXED BOTTOM FOOTER
